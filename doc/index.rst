@@ -5,15 +5,6 @@
 
 .. sectionauthor:: Stefan Krah <skrah at bytereef.org>
 
-.. role:: raw-html(raw)
-   :format: html
-
-https://github.com/plures/ndtypes :raw-html:`<br />`
-https://github.com/plures/xnd :raw-html:`<br />`
-https://github.com/plures/gumath :raw-html:`<br />`
-
-
-
 
 xnd
 ===
