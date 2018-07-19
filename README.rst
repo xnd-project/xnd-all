@@ -16,7 +16,7 @@ Kernel generators for gumath/xnd are here:
 
 https://github.com/plures/xndtools
 
-xndtools was written by `Pearu Peterson <pearu.peterson@gmail.com>`_.
+xndtools was written by `Pearu Peterson <https://github.com/pearu>`_.
 
 
 Funding for these projects initially came from `Anaconda Inc. <https://www.anaconda.com/>`_
