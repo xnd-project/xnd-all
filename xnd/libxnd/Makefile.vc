@@ -1,0 +1,104 @@
+
+# ======================================================================
+#                  Visual C (nmake) Makefile for libxnd
+# ======================================================================
+
+LIBSTATIC = libxnd-0.2.0dev3.lib
+LIBIMPORT = libxnd-0.2.0dev3.dll.lib
+LIBSHARED = libxnd-0.2.0dev3.dll
+LIBNDTYPESIMPORT = libndtypes-0.2.0dev3.dll.lib
+
+!ifndef LIBNDTYPESINCLUDE
+LIBNDTYPESINCLUDE = ..\ndtypes\libndtypes
+!endif
+
+!ifndef LIBNDTYPESDIR
+LIBNDTYPESDIR = ..\ndtypes\libndtypes
+!endif
+
+OPT = /MT /Ox /GS /EHsc
+OPT_SHARED = /DXND_EXPORT /MD /Ox /GS /EHsc /Fo.objs^\
+
+COMMON_CFLAGS = /nologo /W4 /wd4200 /wd4201 /wd4204
+CFLAGS = $(COMMON_CFLAGS) $(OPT)
+CFLAGS_SHARED = $(COMMON_CFLAGS) $(OPT_SHARED)
+
+
+default: $(LIBSTATIC) $(LIBSHARED)
+	copy /y xnd.h ..\python\xnd
+	copy /y $(LIBSTATIC) ..\python\xnd
+	copy /y $(LIBIMPORT) ..\python\xnd
+	copy /y $(LIBSHARED) ..\python\xnd
+
+
+OBJS = bitmaps.obj copy.obj equal.obj xnd.obj
+
+SHARED_OBJS = .objs\bitmaps.obj .objs\copy.obj .objs\equal.obj .objs\xnd.obj
+
+
+$(LIBSTATIC):\
+Makefile $(OBJS)
+	-@if exist $@ del $(LIBSTATIC)
+	lib /nologo /out:$(LIBSTATIC) $(OBJS)
+
+$(LIBSHARED):\
+Makefile $(SHARED_OBJS)
+	-@if exist $@ del $(LIBSHARED)
+	link /nologo /DLL /MANIFEST /out:$(LIBSHARED) /implib:$(LIBIMPORT) $(SHARED_OBJS) "/LIBPATH:$(LIBNDTYPESDIR)" $(LIBNDTYPESIMPORT)
+	mt /nologo -manifest $(LIBSHARED).manifest -outputresource:$(LIBSHARED);2
+
+bitmaps.obj:\
+Makefile bitmaps.c xnd.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS) -c bitmaps.c
+
+.objs\bitmaps.obj:\
+Makefile bitmaps.c xnd.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS_SHARED) -c bitmaps.c
+
+copy.obj:\
+Makefile copy.c xnd.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS) -c copy.c
+
+.objs\copy.obj:\
+Makefile copy.c xnd.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS_SHARED) -c copy.c
+
+equal.obj:\
+Makefile equal.c xnd.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS) -c equal.c
+
+.objs\equal.obj:\
+Makefile equal.c xnd.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS_SHARED) -c equal.c
+
+xnd.obj:\
+Makefile xnd.c xnd.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS) -c xnd.c
+
+.objs\xnd.obj:\
+Makefile xnd.c xnd.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS_SHARED) -c xnd.c
+
+check:\
+Makefile default
+	cd tests && copy /y Makefile.vc Makefile && nmake /nologo
+	.\tests\runtest.exe
+	.\tests\runtest_shared.exe
+
+
+FORCE:
+
+clean: FORCE
+	del /q /f *.exe *.obj *.lib *.dll *.exp *.manifest 2>NUL
+	cd .objs && del /q /f *.obj 2>NUL
+	if exist "..\build\" rd /q /s "..\build\"
+	if exist "..\dist\" rd /q /s "..\dist\"
+	if exist "..\MANIFEST" del "..\MANIFEST"
+	if exist "..\record.txt" del "..\record.txt"
+	cd ..\python\xnd && del *.lib *.dll *.pyd xnd.h 2>NUL
+
+distclean: clean
+	del Makefile 2>NUL
+
+
+

@@ -1,0 +1,39 @@
+
+SRCDIR = ..
+
+CC = @CC@
+LIBSTATIC = @LIBSTATIC@
+LIBSHARED = @LIBSHARED@
+
+INCLUDES = @CONFIGURE_INCLUDES_TEST@
+LIBS = @CONFIGURE_LIBS_TEST@
+
+CONFIGURE_CFLAGS = @CONFIGURE_CFLAGS@
+XND_CFLAGS = $(strip $(CONFIGURE_CFLAGS) $(CFLAGS))
+
+
+default: runtest runtest_shared
+
+
+runtest:\
+Makefile runtest.c test_fixed.c test.h $(SRCDIR)/xnd.h $(SRCDIR)/$(LIBSTATIC)
+	$(CC) -I$(SRCDIR) -I$(INCLUDES) $(XND_CFLAGS) \
+	-o runtest runtest.c test_fixed.c $(SRCDIR)/libxnd.a \
+	$(LIBS)/libndtypes.a
+
+runtest_shared:\
+Makefile runtest.c test_fixed.c test.h $(SRCDIR)/xnd.h $(SRCDIR)/$(LIBSHARED)
+	$(CC) -I$(SRCDIR) -I$(INCLUDES) -L$(SRCDIR) -L$(LIBS) \
+	$(XND_CFLAGS) -o runtest_shared runtest.c test_fixed.c -lxnd -lndtypes
+
+
+FORCE:
+
+clean: FORCE
+	rm -f *.o *.gch *.gcda *.gcno *.gcov *.dyn *.dpi *.lock
+	rm -f runtest runtest_shared
+
+distclean: clean
+	rm -rf Makefile
+
+

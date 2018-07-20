@@ -1,0 +1,20 @@
+# Ignore ./configure generated files
+Makefile
+config.h
+config.log
+config.status
+
+# Ignore make generated C Files
+*.a
+*.o
+*.so
+*.so.*
+libxnd/tests/runtest
+libxnd/tests/runtest_shared
+
+# Ignore python generated build files
+build/
+doc/build/
+python/xnd/xnd.h
+*.egg-info
+__pycache__

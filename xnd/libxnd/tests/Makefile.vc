@@ -1,0 +1,44 @@
+
+SRCDIR = ..
+
+LIBSTATIC = libxnd-0.2.0dev3.lib
+LIBSHARED = libxnd-0.2.0dev3.dll.lib
+LIBNDTYPESSTATIC = libndtypes-0.2.0dev3.lib
+LIBNDTYPESIMPORT = libndtypes-0.2.0dev3.dll.lib
+
+!ifndef LIBNDTYPESINCLUDE
+LIBNDTYPESINCLUDE = ..\..\ndtypes\libndtypes
+!endif
+
+!ifndef LIBNDTYPESDIR
+LIBNDTYPESDIR = ..\..\ndtypes\libndtypes
+!endif
+
+
+CC = cl.exe
+CFLAGS = /nologo /MT /Ox /GS /EHsc
+CFLAGS_SHARED = /nologo /DXND_IMPORT /MD /Ox /GS /EHsc
+
+default: runtest runtest_shared
+
+
+runtest:\
+Makefile runtest.c test_fixed.c test.h $(SRCDIR)\xnd.h $(SRCDIR)\$(LIBSTATIC)
+	$(CC) "-I$(SRCDIR)" "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS) /Feruntest runtest.c \
+	test_fixed.c $(SRCDIR)\$(LIBSTATIC) /link "/LIBPATH:$(LIBNDTYPESDIR)" $(LIBNDTYPESSTATIC)
+
+runtest_shared:\
+Makefile runtest.c test_fixed.c test.h $(SRCDIR)\xnd.h $(SRCDIR)\$(LIBSHARED)
+	$(CC) "-I$(SRCDIR)" "-I$(LIBNDTYPESINCLUDE)" $(CFLAGS_SHARED) /Feruntest_shared \
+	runtest.c test_fixed.c $(SRCDIR)\$(LIBSHARED) /link "/LIBPATH:$(LIBNDTYPESDIR)" $(LIBNDTYPESIMPORT)
+
+
+FORCE:
+
+clean: FORCE
+	del /q /f *.exe *.obj *.lib *.dll *.exp *.manifest 2>NUL
+
+distclean: clean
+	del /q /f Makefile 2>NUL
+
+

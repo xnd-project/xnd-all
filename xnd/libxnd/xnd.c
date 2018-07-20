@@ -1,0 +1,1215 @@
+/*
+ * BSD 3-Clause License
+ *
+ * Copyright (c) 2017-2018, plures
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+#include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <string.h>
+#include <assert.h>
+#include "ndtypes.h"
+#include "xnd.h"
+#include "inline.h"
+#include "contrib.h"
+
+
+static int xnd_init(xnd_t * const x, const uint32_t flags, ndt_context_t *ctx);
+static void xnd_clear(xnd_t * const x, const uint32_t flags);
+
+
+/*****************************************************************************/
+/*                              Error handling                               */
+/*****************************************************************************/
+
+/* error return value */
+const xnd_t xnd_error = {
+  .bitmap = {.data=NULL, .size=0, .next=NULL},
+  .index = 0,
+  .type = NULL,
+  .ptr = NULL
+};
+
+int
+xnd_err_occurred(const xnd_t *x)
+{
+    return x->ptr == NULL;
+}
+
+
+/*****************************************************************************/
+/*                  Create and initialize a new master buffer                */
+/*****************************************************************************/
+
+static bool
+requires_init(const ndt_t * const t)
+{
+    const ndt_t *dtype = ndt_dtype(t);
+
+    switch (dtype->tag) {
+    case Categorical:
+    case Bool:
+    case Int8: case Int16: case Int32: case Int64:
+    case Uint8: case Uint16: case Uint32: case Uint64:
+    case Float16: case Float32: case Float64:
+    case Complex32: case Complex64: case Complex128:
+    case FixedString: case FixedBytes:
+    case String: case Bytes:
+        return false;
+    default:
+        return true;
+    }
+}
+
+/* Create and initialize memory with type 't'. */
+static char *
+xnd_new(const ndt_t * const t, const uint32_t flags, ndt_context_t *ctx)
+{
+    xnd_t x;
+
+    if (ndt_is_abstract(t)) {
+        ndt_err_format(ctx, NDT_ValueError,
+            "cannot create xnd container from abstract type");
+        return NULL;
+    }
+
+    x.index = 0;
+    x.type = t;
+
+    x.ptr = ndt_aligned_calloc(t->align, t->datasize);
+    if (x.ptr == NULL) {
+        ndt_memory_error(ctx);
+        return NULL;
+    }
+
+    if (requires_init(t) && xnd_init(&x, flags, ctx) < 0) {
+        ndt_aligned_free(x.ptr);
+        return NULL;
+    }
+
+    return x.ptr;
+}
+
+/*
+ * Initialize typed memory. If the XND_OWN_POINTERS flag is set, allocate
+ * memory for all ref subtypes and initialize that memory. Otherwise, set
+ * refs to NULL.
+ *
+ * Ref subtypes include any type of the form "Ref(t)".
+ *
+ * Never allocated are (sizes are not known):
+ *   - "string" type (pointer to NUL-terminated UTF8 string)
+ *   - data of the "bytes" type: {size: size_t, data: uint8_t *bytes}
+ *
+ * At all times the data pointers must be NULL or pointers to valid memory.
+ */
+static int
+xnd_init(xnd_t * const x, const uint32_t flags, ndt_context_t *ctx)
+{
+    const ndt_t * const t = x->type;
+
+    if (ndt_is_abstract(t)) {
+        ndt_err_format(ctx, NDT_ValueError,
+            "cannot initialize concrete memory from abstract type");
+        return -1;
+    }
+
+    switch (t->tag) {
+    case FixedDim: {
+        int64_t i;
+
+        for (i = 0; i < t->FixedDim.shape; i++) {
+            xnd_t next = _fixed_dim_next(x, i);
+            if (xnd_init(&next, flags, ctx) < 0) {
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
+    case VarDim: {
+        int64_t start, step, shape;
+        int64_t i;
+
+        shape = ndt_var_indices(&start, &step, t, x->index, ctx);
+        if (shape < 0) {
+            return -1;
+        }
+
+        for (i = 0; i < shape; i++) {
+            xnd_t next = _var_dim_next(x, start, step, i);
+            if (xnd_init(&next, flags, ctx) < 0) {
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
+    case Tuple: {
+        for (int64_t i = 0; i < t->Tuple.shape; i++) {
+            xnd_t next = _tuple_next(x, i);
+            if (xnd_init(&next, flags, ctx) < 0) {
+                xnd_clear(&next, flags);
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
+    case Record: {
+        for (int64_t i = 0; i < t->Record.shape; i++) {
+            xnd_t next = _record_next(x, i);
+            if (xnd_init(&next, flags, ctx) < 0) {
+                xnd_clear(&next, flags);
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
+    /*
+     * Ref represents a pointer to an explicit type. If XND_OWN_POINTERS
+     * is set, allocate memory for that type and set the pointer.
+     */
+    case Ref: {
+        if (flags & XND_OWN_POINTERS) {
+            const ndt_t *u = t->Ref.type;
+            void *ref;
+
+            ref = ndt_aligned_calloc(u->align, u->datasize);
+            if (ref == NULL) {
+                ndt_err_format(ctx, NDT_MemoryError, "out of memory");
+                return -1;
+            }
+            XND_POINTER_DATA(x->ptr) = ref;
+
+            xnd_t next = _ref_next(x);
+            if (xnd_init(&next, flags, ctx) < 0) {
+                xnd_clear(&next, flags);
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
+    /* Constr is a named explicit type. */
+    case Constr: {
+        xnd_t next = _constr_next(x);
+        if (xnd_init(&next, flags, ctx) < 0) {
+            xnd_clear(&next, flags);
+            return -1;
+        }
+
+        return 0;
+    }
+
+    /* Nominal is a globally unique typedef. */
+    case Nominal: {
+        xnd_t next = _nominal_next(x);
+        if (xnd_init(&next, flags, ctx) < 0) {
+            xnd_clear(&next, flags);
+            return -1;
+        }
+
+        return 0;
+    }
+
+    /* Categorical is already initialized by calloc(). */
+    case Categorical:
+        return 0;
+
+    case Char:
+        ndt_err_format(ctx, NDT_NotImplementedError, "char not implemented");
+        return -1;
+
+    /* Primitive types are already initialized by calloc(). */
+    case Bool:
+    case Int8: case Int16: case Int32: case Int64:
+    case Uint8: case Uint16: case Uint32: case Uint64:
+    case Float16: case Float32: case Float64:
+    case Complex32: case Complex64: case Complex128:
+    case FixedString: case FixedBytes:
+    case String: case Bytes:
+        return 0;
+
+    case Module: case Function:
+    case AnyKind: case SymbolicDim: case EllipsisDim: case Typevar:
+    case ScalarKind: case SignedKind: case UnsignedKind: case FloatKind:
+    case ComplexKind: case FixedStringKind: case FixedBytesKind:
+        /* NOT REACHED: intercepted by ndt_is_abstract(). */
+        ndt_err_format(ctx, NDT_RuntimeError, "unexpected abstract type");
+        return -1;
+    }
+
+    /* NOT REACHED: tags should be exhaustive */
+    ndt_err_format(ctx, NDT_RuntimeError, "invalid type tag");
+    return -1;
+}
+
+/*
+ * Create a type from a string and return a new master buffer for that type.
+ * Any combination of flags that include XND_OWN_TYPE can be passed.
+ */
+xnd_master_t *
+xnd_empty_from_string(const char *s, uint32_t flags, ndt_context_t *ctx)
+{
+    xnd_bitmap_t b = {.data=NULL, .size=0, .next=NULL};
+    xnd_master_t *x;
+    ndt_t *t;
+    char *ptr;
+
+    if (!(flags & XND_OWN_TYPE)) {
+        ndt_err_format(ctx, NDT_InvalidArgumentError,
+            "xnd_empty_from_string: XND_OWN_TYPE must be set");
+        return NULL;
+    }
+
+    x = ndt_alloc(1, sizeof *x);
+    if (x == NULL) {
+        return ndt_memory_error(ctx);
+    }
+
+    t = ndt_from_string(s, ctx);
+    if (t == NULL) {
+        ndt_free(x);
+        return NULL;
+    }
+
+    if (!ndt_is_concrete(t)) {
+        ndt_err_format(ctx, NDT_ValueError, "type must be concrete");
+        ndt_del(t);
+        ndt_free(x);
+        return NULL;
+    }
+
+    if (xnd_bitmap_init(&b, t,ctx) < 0) {
+        ndt_del(t);
+        ndt_free(x);
+        return NULL;
+    }
+
+    ptr = xnd_new(t, flags, ctx);
+    if (ptr == NULL) {
+        xnd_bitmap_clear(&b);
+        ndt_del(t);
+        ndt_free(x);
+        return NULL;
+    }
+
+    x->flags = flags;
+    x->master.bitmap = b;
+    x->master.index = 0;
+    x->master.type = t;
+    x->master.ptr = ptr;
+
+    return x;
+}
+
+/*
+ * Return a new master buffer. Any combination of flags except for XND_OWN_TYPE
+ * can be passed. 't' must be kept valid as long as the master buffer is valid.
+ */
+xnd_master_t *
+xnd_empty_from_type(const ndt_t *t, uint32_t flags, ndt_context_t *ctx)
+{
+    xnd_bitmap_t b = {.data=NULL, .size=0, .next=NULL};
+    xnd_master_t *x;
+    char *ptr;
+
+    if (flags & XND_OWN_TYPE) {
+        ndt_err_format(ctx, NDT_InvalidArgumentError,
+            "xnd_empty_from_type: XND_OWN_TYPE must not be set");
+        return NULL;
+    }
+
+    if (!ndt_is_concrete(t)) {
+        ndt_err_format(ctx, NDT_ValueError, "type must be concrete");
+        return NULL;
+    }
+
+    x = ndt_alloc(1, sizeof *x);
+    if (x == NULL) {
+        return ndt_memory_error(ctx);
+    }
+
+    if (xnd_bitmap_init(&b, t, ctx) < 0) {
+        ndt_free(x);
+        return NULL;
+    }
+
+    ptr = xnd_new(t, flags, ctx);
+    if (ptr == NULL) {
+        xnd_bitmap_clear(&b);
+        ndt_free(x);
+        return NULL;
+    }
+
+    x->flags = flags;
+    x->master.bitmap = b;
+    x->master.index = 0;
+    x->master.type = t;
+    x->master.ptr = ptr;
+
+    return x;
+}
+
+/*
+ * Create master buffer from an existing xnd_t.  Ownership of bitmaps, type,
+ * ptr is transferred to the master buffer.
+ *
+ * 'flags' are the master buffer's flags after the transfer.  The flags of
+ * 'src' are always assumed to be XND_OWN_ALL.
+ *
+ * This is a convenience function that should only be used if the xnd_t src
+ * owns everything and its internals have not been exposed to other views.
+ */
+xnd_master_t *
+xnd_from_xnd(xnd_t *src, uint32_t flags, ndt_context_t *ctx)
+{
+    xnd_master_t *x;
+
+    x = ndt_alloc(1, sizeof *x);
+    if (x == NULL) {
+        xnd_clear(src, XND_OWN_ALL);
+        ndt_del((ndt_t *)src->type);
+        ndt_aligned_free(src->ptr);
+        xnd_bitmap_clear(&src->bitmap);
+        return ndt_memory_error(ctx);
+    }
+
+    x->flags = flags;
+    x->master = *src;
+
+    return x;
+}
+
+
+/*****************************************************************************/
+/*                     Deallocate and clear a master buffer                  */
+/*****************************************************************************/
+
+static bool
+requires_clear(const ndt_t * const t)
+{
+    const ndt_t *dtype = ndt_dtype(t);
+
+    switch (dtype->tag) {
+    case Categorical:
+    case Bool:
+    case Int8: case Int16: case Int32: case Int64:
+    case Uint8: case Uint16: case Uint32: case Uint64:
+    case Float16: case Float32: case Float64:
+    case Complex32: case Complex64: case Complex128:
+    case FixedString: case FixedBytes:
+        return false;
+    default:
+        return true;
+    }
+}
+
+/* Clear an embedded pointer. */
+static void
+xnd_clear_ref(xnd_t *x, const uint32_t flags)
+{
+    assert(x->type->tag == Ref);
+
+    if (flags & XND_OWN_POINTERS) {
+        ndt_aligned_free(XND_POINTER_DATA(x->ptr));
+        XND_POINTER_DATA(x->ptr) = NULL;
+    }
+}
+
+/* Strings must always be allocated by non-aligned allocators. */
+static void
+xnd_clear_string(xnd_t *x, const uint32_t flags)
+{
+    assert(x->type->tag == String);
+
+    if (flags & XND_OWN_STRINGS) {
+        ndt_free(XND_POINTER_DATA(x->ptr));
+        XND_POINTER_DATA(x->ptr) = NULL;
+    }
+}
+
+/* Bytes must always be allocated by aligned allocators. */
+static void
+xnd_clear_bytes(xnd_t *x, const uint32_t flags)
+{
+    assert(x->type->tag == Bytes);
+
+    if (flags & XND_OWN_BYTES) {
+        ndt_aligned_free(XND_BYTES_DATA(x->ptr));
+        XND_BYTES_DATA(x->ptr) = NULL;
+    }
+}
+
+/* Clear embedded pointers in the data according to flags. */
+static void
+xnd_clear(xnd_t * const x, const uint32_t flags)
+{
+    NDT_STATIC_CONTEXT(ctx);
+    const ndt_t * const t = x->type;
+
+    assert(ndt_is_concrete(t));
+
+    switch (t->tag) {
+    case FixedDim: {
+        for (int64_t i = 0; i < t->FixedDim.shape; i++) {
+            xnd_t next = _fixed_dim_next(x, i);
+            xnd_clear(&next, flags);
+        }
+
+        return;
+    }
+
+    case VarDim: {
+        int64_t start, step, shape;
+        int64_t i;
+
+        shape = ndt_var_indices(&start, &step, t, x->index, &ctx);
+        if (shape < 0) {
+            /* This cannot happen: indices are checked in xnd_init() and
+             * should remain constant. */
+            ndt_context_del(&ctx);
+            fprintf(stderr, "xnd_clear: internal error: var indices changed\n");
+            return;
+        }
+
+        for (i = 0; i < shape; i++) {
+            xnd_t next = _var_dim_next(x, start, step, i);
+            xnd_clear(&next, flags);
+        }
+
+        return;
+    }
+
+    case Tuple: {
+        for (int64_t i = 0; i < t->Tuple.shape; i++) {
+            xnd_t next = _tuple_next(x, i);
+            xnd_clear(&next, flags);
+        }
+
+        return;
+    }
+
+    case Record: {
+        for (int64_t i = 0; i < t->Record.shape; i++) {
+            xnd_t next = _record_next(x, i);
+            xnd_clear(&next, flags);
+        }
+
+        return;
+    }
+
+    case Ref: {
+        if (flags & XND_OWN_POINTERS) {
+            xnd_t next = _ref_next(x);
+            xnd_clear(&next, flags);
+            xnd_clear_ref(x, flags);
+        }
+
+        return;
+    }
+
+    case Constr: {
+        xnd_t next = _constr_next(x);
+        xnd_clear(&next, flags);
+        return;
+    }
+
+    case Nominal: {
+        xnd_t next = _nominal_next(x);
+        xnd_clear(&next, flags);
+        return;
+    }
+
+    case Bool:
+    case Int8: case Int16: case Int32: case Int64:
+    case Uint8: case Uint16: case Uint32: case Uint64:
+    case Float16: case Float32: case Float64:
+    case Complex32: case Complex64: case Complex128:
+    case FixedString: case FixedBytes:
+        return;
+
+    case String:
+        xnd_clear_string(x, flags);
+        return;
+
+    case Bytes:
+        xnd_clear_bytes(x, flags);
+        return;
+
+    case Categorical:
+        /* Categorical values are just indices into the categories. */
+        return;
+
+    case Char:
+        /* Just a scalar. */
+        return;
+
+    case Module:
+        /* XXX Not implemented. */
+        return;
+
+    /* NOT REACHED: intercepted by ndt_is_abstract(). */
+    case AnyKind: case SymbolicDim: case EllipsisDim: case Typevar:
+    case ScalarKind: case SignedKind: case UnsignedKind: case FloatKind:
+    case ComplexKind: case FixedStringKind: case FixedBytesKind:
+    case Function:
+        return;
+    }
+}
+
+/*
+ * Delete an xnd_t buffer according to 'flags'. Outside xnd_del(), this
+ * function should only be used if an xnd_t owns all its members.
+ */
+void
+xnd_del_buffer(xnd_t *x, uint32_t flags)
+{
+    if (x != NULL) {
+        if (x->ptr != NULL && x->type != NULL) {
+            if ((flags&XND_OWN_DATA) && requires_clear(x->type)) {
+                xnd_clear(x, flags);
+            }
+
+            if (flags & XND_OWN_TYPE) {
+                ndt_del((ndt_t *)x->type);
+            }
+
+            if (flags & XND_OWN_DATA) {
+                ndt_aligned_free(x->ptr);
+            }
+        }
+
+        if (flags & XND_OWN_DATA) {
+            xnd_bitmap_clear(&x->bitmap);
+        }
+    }
+}
+
+/*
+ * Delete the master buffer. The type and embedded pointers are deallocated
+ * according to x->flags.
+ */
+void
+xnd_del(xnd_master_t *x)
+{
+    if (x != NULL) {
+        xnd_del_buffer(&x->master, x->flags);
+        ndt_free(x);
+    }
+}
+
+
+/*****************************************************************************/
+/*                 Subtrees (single elements are a special case)             */
+/*****************************************************************************/
+
+static int64_t
+get_index(const xnd_index_t *key, int64_t shape, ndt_context_t *ctx)
+{
+    switch (key->tag) {
+    case Index: {
+        int64_t i = key->Index;
+        if (i < 0) {
+            i += shape;
+        }
+
+        if (i < 0 || i >= shape || i > XND_SSIZE_MAX) {
+            ndt_err_format(ctx, NDT_IndexError,
+                "index with value %" PRIi64 " out of bounds", key->Index);
+            return -1;
+        }
+
+        return i;
+    }
+
+    case FieldName:
+        ndt_err_format(ctx, NDT_ValueError,
+            "expected integer index, got field name: '%s'", key->FieldName);
+        return -1;
+
+    case Slice:
+        ndt_err_format(ctx, NDT_ValueError,
+            "expected integer index, got slice");
+        return -1;
+    }
+
+    /* NOT REACHED: tags should be exhaustive */
+    ndt_err_format(ctx, NDT_RuntimeError, "invalid index tag");
+    return -1;
+}
+
+static int64_t
+get_index_record(const ndt_t *t, const xnd_index_t *key, ndt_context_t *ctx)
+{
+    assert(t->tag == Record);
+
+    switch (key->tag) {
+    case FieldName: {
+        int64_t i;
+
+        for (i = 0; i < t->Record.shape; i++) {
+            if (strcmp(key->FieldName, t->Record.names[i]) == 0) {
+                return i;
+            }
+        }
+
+        ndt_err_format(ctx, NDT_ValueError,
+            "invalid field name '%s'", key->FieldName);
+        return -1;
+    }
+    case Index: case Slice:
+        return get_index(key, t->Record.shape, ctx);
+    }
+
+    /* NOT REACHED: tags should be exhaustive */
+    ndt_err_format(ctx, NDT_RuntimeError, "invalid index tag");
+    return -1;
+}
+
+static void
+set_index_exception(bool indexable, ndt_context_t *ctx)
+{
+    if (indexable) {
+        ndt_err_format(ctx, NDT_IndexError, "too many indices");
+    }
+    else {
+        ndt_err_format(ctx, NDT_TypeError, "type not indexable");
+    }
+}
+
+/* Return a typed subtree of a memory block */
+xnd_t
+xnd_subtree_index(const xnd_t *x, const int64_t *indices, int len, ndt_context_t *ctx)
+{
+    const ndt_t * const t = x->type;
+
+    assert(ndt_is_concrete(t));
+
+    if (t->ndim > 0 && ndt_is_optional(t)) {
+        ndt_err_format(ctx, NDT_NotImplementedError,
+            "optional dimensions are not supported");
+        return xnd_error;
+    }
+
+    if (len == 0) {
+        return *x;
+    }
+
+    const int64_t i = indices[0];
+
+    switch (t->tag) {
+    case FixedDim: {
+        if (i < 0 || i >= t->FixedDim.shape) {
+            ndt_err_format(ctx, NDT_ValueError,
+                "fixed dim index out of bounds");
+            return xnd_error;
+        }
+
+        const xnd_t next = xnd_fixed_dim_next(x, i);
+        return xnd_subtree_index(&next, indices+1, len-1, ctx);
+    }
+
+    case VarDim: {
+        int64_t start, step, shape;
+
+        shape = ndt_var_indices(&start, &step, t, x->index, ctx);
+        if (shape < 0) {
+            return xnd_error;
+        }
+
+        if (i < 0 || i >= shape) {
+            ndt_err_format(ctx, NDT_ValueError, "var dim index out of bounds");
+            return xnd_error;
+        }
+
+        const xnd_t next = xnd_var_dim_next(x, start, step, i);
+        return xnd_subtree_index(&next, indices+1, len-1, ctx);
+    }
+
+    case Tuple: {
+        if (i < 0 || i >= t->Tuple.shape) {
+            ndt_err_format(ctx, NDT_ValueError, "tuple index out of bounds");
+            return xnd_error;
+        }
+
+        const xnd_t next = xnd_tuple_next(x, i, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return xnd_subtree_index(&next, indices+1, len-1, ctx);
+    }
+
+    case Record: {
+        if (i < 0 || i >= t->Record.shape) {
+            ndt_err_format(ctx, NDT_ValueError, "record index out of bounds");
+            return xnd_error;
+        }
+
+        const xnd_t next = xnd_record_next(x, i, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return xnd_subtree_index(&next, indices+1, len-1, ctx);
+    }
+
+    case Ref: {
+        const xnd_t next = xnd_ref_next(x, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return xnd_subtree_index(&next, indices, len, ctx);
+    }
+
+    case Constr: {
+        const xnd_t next = xnd_constr_next(x, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return xnd_subtree_index(&next, indices, len, ctx);
+    }
+
+   case Nominal: {
+        const xnd_t next = xnd_nominal_next(x, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return xnd_subtree_index(&next, indices, len, ctx);
+    }
+
+    default:
+        ndt_err_format(ctx, NDT_ValueError, "type not indexable");
+        return xnd_error;
+    }
+}
+
+/*
+ * Return a zero copy view of an xnd object.  If a dtype is indexable,
+ * descend into the dtype.
+ */
+static xnd_t
+_xnd_subtree(const xnd_t *x, const xnd_index_t indices[], int len, bool indexable,
+             ndt_context_t *ctx)
+{
+    const ndt_t *t = x->type;
+    const xnd_index_t *key;
+
+    assert(ndt_is_concrete(t));
+
+    if (t->ndim > 0 && ndt_is_optional(t)) {
+        ndt_err_format(ctx, NDT_NotImplementedError,
+            "optional dimensions are not supported");
+        return xnd_error;
+    }
+
+    if (len == 0) {
+        return *x;
+    }
+
+    key = &indices[0];
+
+    switch (t->tag) {
+    case FixedDim: {
+        int64_t i = get_index(key, t->FixedDim.shape, ctx);
+        if (i < 0) {
+            return xnd_error;
+        }
+
+        const xnd_t next = xnd_fixed_dim_next(x, i);
+        return _xnd_subtree(&next, indices+1, len-1, true, ctx);
+    }
+
+    case VarDim: {
+        int64_t start, step, shape;
+        int64_t i;
+
+        shape = ndt_var_indices(&start, &step, t, x->index, ctx);
+        if (shape < 0) {
+            return xnd_error;
+        }
+
+        i = get_index(key, shape, ctx);
+        if (i < 0) {
+            return xnd_error;
+        }
+
+        const xnd_t next = xnd_var_dim_next(x, start, step, i);
+        return _xnd_subtree(&next, indices+1, len-1, true, ctx);
+    }
+
+    case Tuple: {
+        const int64_t i = get_index(key, t->Tuple.shape, ctx);
+        if (i < 0) {
+            return xnd_error;
+        }
+
+        const xnd_t next = xnd_tuple_next(x, i, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return _xnd_subtree(&next, indices+1, len-1, true, ctx);
+    }
+
+    case Record: {
+        int64_t i = get_index_record(t, key, ctx);
+        if (i < 0) {
+            return xnd_error;
+        }
+
+        const xnd_t next = xnd_record_next(x, i, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return _xnd_subtree(&next, indices+1, len-1, true, ctx);
+    }
+
+    case Ref: {
+        const xnd_t next = xnd_ref_next(x, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return _xnd_subtree(&next, indices, len, false, ctx);
+    }
+
+    case Constr: {
+        const xnd_t next = xnd_constr_next(x, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return _xnd_subtree(&next, indices, len, false, ctx);
+    }
+
+    case Nominal: {
+        const xnd_t next = xnd_nominal_next(x, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return _xnd_subtree(&next, indices, len, false, ctx);
+    }
+
+    default:
+        set_index_exception(indexable, ctx);
+        return xnd_error;
+    }
+}
+
+/*
+ * Return a zero copy view of an xnd object.  If a dtype is indexable,
+ * descend into the dtype.
+ */
+xnd_t
+xnd_subtree(const xnd_t *x, const xnd_index_t indices[], int len, ndt_context_t *ctx)
+{
+    return _xnd_subtree(x, indices, len, false, ctx);
+}
+
+static xnd_t xnd_index(const xnd_t *x, const xnd_index_t indices[], int len, ndt_context_t *ctx);
+static xnd_t xnd_slice(const xnd_t *x, const xnd_index_t indices[], int len, ndt_context_t *ctx);
+
+xnd_t
+xnd_multikey(const xnd_t *x, const xnd_index_t indices[], int len, ndt_context_t *ctx)
+{
+    const ndt_t *t = x->type;
+    const xnd_index_t *key;
+
+    assert(len >= 0);
+    assert(ndt_is_concrete(t));
+    assert(x->ptr != NULL);
+
+    if (len > t->ndim) {
+        ndt_err_format(ctx, NDT_IndexError, "too many indices");
+        return xnd_error;
+    }
+
+    if (len == 0) {
+        xnd_t next = *x;
+        next.type = ndt_copy(t, ctx);
+        if (next.type == NULL) {
+            return xnd_error;
+        }
+
+        return next;
+    }
+
+    key = &indices[0];
+
+    switch (key->tag) {
+    case Index:
+        return xnd_index(x, indices, len, ctx);
+    case Slice:
+        return xnd_slice(x, indices, len, ctx);
+    case FieldName:
+        ndt_err_format(ctx, NDT_RuntimeError,
+            "xnd_multikey: internal error: key must be index or slice");
+        return xnd_error;
+    }
+
+    /* NOT REACHED: tags should be exhaustive */
+    ndt_err_format(ctx, NDT_RuntimeError, "invalid index tag");
+    return xnd_error;
+}
+
+/*
+ * Return a view with a copy of the type.  Indexing into the dtype is
+ * not permitted.
+ */
+static xnd_t
+xnd_index(const xnd_t *x, const xnd_index_t indices[], int len, ndt_context_t *ctx)
+{
+    const ndt_t *t = x->type;
+    const xnd_index_t *key;
+
+    assert(len > 0);
+    assert(ndt_is_concrete(t));
+    assert(x->ptr != NULL);
+
+    key = &indices[0];
+    assert(key->tag == Index);
+
+    switch (t->tag) {
+    case FixedDim: {
+        const int64_t i = get_index(key, t->FixedDim.shape, ctx);
+        if (i < 0) {
+            return xnd_error;
+        }
+
+        const xnd_t next = xnd_fixed_dim_next(x, i);
+        return xnd_multikey(&next, indices+1, len-1, ctx);
+    }
+
+    case VarDim: {
+        ndt_err_format(ctx, NDT_IndexError,
+            "mixed indexing and slicing is not supported for var dimensions");
+        return xnd_error;
+    }
+
+    default:
+        ndt_err_format(ctx, NDT_IndexError, "type is not indexable");
+        return xnd_error;
+    }
+}
+
+static xnd_t
+xnd_slice(const xnd_t *x, const xnd_index_t indices[], int len, ndt_context_t *ctx)
+{
+    const ndt_t *t = x->type;
+    const xnd_index_t *key;
+
+    assert(len > 0);
+    assert(ndt_is_concrete(t));
+    assert(x->ptr != NULL);
+
+    key = &indices[0];
+    assert(key->tag == Slice);
+
+    switch (t->tag) {
+    case FixedDim: {
+        int64_t start = key->Slice.start;
+        int64_t stop = key->Slice.stop;
+        int64_t step = key->Slice.step;
+        int64_t shape;
+
+        shape = xnd_slice_adjust_indices(t->FixedDim.shape, &start, &stop, step);
+
+        const xnd_t next = xnd_fixed_dim_next(x, start);
+        const xnd_t sliced = xnd_multikey(&next, indices+1, len-1, ctx);
+        if (sliced.ptr == NULL) {
+            return xnd_error;
+        }
+
+        xnd_t ret = *x;
+        ret.type = ndt_fixed_dim((ndt_t *)sliced.type, shape,
+                                 t->Concrete.FixedDim.step * step,
+                                 ctx);
+        if (ret.type == NULL) {
+            return xnd_error;
+        }
+        ret.index = sliced.index;
+
+        return ret;
+    }
+
+    case VarDim: {
+        int64_t start = key->Slice.start;
+        int64_t stop = key->Slice.stop;
+        int64_t step = key->Slice.step;
+        ndt_slice_t *slices;
+        int32_t nslices;
+
+        if (ndt_is_optional(t)) {
+            ndt_err_format(ctx, NDT_NotImplementedError,
+                "optional dimensions are temporarily disabled");
+            return xnd_error;
+        }
+
+        xnd_t next = *x;
+        next.type = t->VarDim.type;
+
+        next = xnd_multikey(&next, indices+1, len-1, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        slices = ndt_var_add_slice(&nslices, t, start, stop, step, ctx);
+        if (slices == NULL) {
+            return xnd_error;
+        }
+
+        xnd_t ret = *x;
+        ret.type = ndt_var_dim((ndt_t *)next.type,
+                                ExternalOffsets,
+                                t->Concrete.VarDim.noffsets, t->Concrete.VarDim.offsets,
+                                nslices, slices,
+                                ctx);
+        if (ret.type == NULL) {
+            return xnd_error;
+        }
+
+        ret.index = next.index;
+
+        return ret;
+    }
+
+    case Tuple: {
+        ndt_err_format(ctx, NDT_NotImplementedError,
+            "slicing tuples is not supported");
+        return xnd_error;
+    }
+
+    case Record: {
+        ndt_err_format(ctx, NDT_NotImplementedError,
+            "slicing records is not supported");
+        return xnd_error;
+    }
+
+    default:
+        ndt_err_format(ctx, NDT_IndexError, "type not sliceable");
+        return xnd_error;
+    }
+}
+
+/*****************************************************************************/
+/*                                Float format                               */
+/*****************************************************************************/
+
+#define IEEE_LITTLE_ENDIAN 0
+#define IEEE_BIG_ENDIAN    1
+static int xnd_double_format = 0;
+static int xnd_float_format = 0;
+
+int
+xnd_init_float(ndt_context_t *ctx)
+{
+    double x = 9006104071832581.0;
+    float y = 16711938.0;
+
+#ifndef _MSC_VER /* Suppress a warning, no need to check on Windows. */
+    if (sizeof(double) != 8) {
+        ndt_err_format(ctx, NDT_RuntimeError,
+            "unsupported platform, need sizeof(double)==8");
+        return -1;
+
+    }
+
+    if (sizeof(float) != 4) {
+        ndt_err_format(ctx, NDT_RuntimeError,
+            "unsupported platform, need sizeof(float)==4");
+        return -1;
+    }
+#endif
+
+    if (memcmp(&x, "\x43\x3f\xff\x01\x02\x03\x04\x05", 8) == 0) {
+        xnd_double_format = IEEE_BIG_ENDIAN;
+    }
+    else if (memcmp(&x, "\x05\x04\x03\x02\x01\xff\x3f\x43", 8) == 0) {
+        xnd_double_format = IEEE_LITTLE_ENDIAN;
+    }
+    else {
+        ndt_err_format(ctx, NDT_RuntimeError,
+            "unsupported platform, could not detect double endianness");
+        return -1;
+    }
+
+    if (memcmp(&y, "\x4b\x7f\x01\x02", 4) == 0) {
+        xnd_float_format = IEEE_BIG_ENDIAN;
+    }
+    else if (memcmp(&y, "\x02\x01\x7f\x4b", 4) == 0) {
+        xnd_float_format = IEEE_LITTLE_ENDIAN;
+    }
+    else {
+        ndt_err_format(ctx, NDT_RuntimeError,
+            "unsupported platform, could not detect float endianness");
+        return -1;
+    }
+
+    return 0;
+}
+
+bool
+xnd_float_is_little_endian(void)
+{
+    return xnd_float_format==IEEE_LITTLE_ENDIAN;
+}
+
+bool
+xnd_float_is_big_endian(void)
+{
+    return xnd_float_format==IEEE_BIG_ENDIAN;
+}
+
+bool
+xnd_double_is_little_endian(void)
+{
+    return xnd_double_format==IEEE_LITTLE_ENDIAN;
+}
+
+bool
+xnd_double_is_big_endian(void)
+{
+    return xnd_double_format==IEEE_BIG_ENDIAN;
+}
