@@ -1,0 +1,160 @@
+
+# ======================================================================
+#                  Visual C (nmake) Makefile for libgumath
+# ======================================================================
+
+LIBSTATIC = libgumath-0.2.0dev3.lib
+LIBIMPORT = libgumath-0.2.0dev3.dll.lib
+LIBSHARED = libgumath-0.2.0dev3.dll
+LIBNDTYPESIMPORT = libndtypes-0.2.0dev3.dll.lib
+LIBXNDIMPORT = libxnd-0.2.0dev3.dll.lib
+
+!ifndef LIBNDTYPESINCLUDE
+LIBNDTYPESINCLUDE = ..\ndtypes\libndtypes
+!endif
+
+!ifndef LIBNDTYPESDIR
+LIBNDTYPESDIR = ..\ndtypes\libndtypes
+!endif
+
+!ifndef LIBXNDINCLUDE
+LIBXNDINCLUDE = ..\xnd\libxnd
+!endif
+
+!ifndef LIBXNDDIR
+LIBXNDDIR = ..\xnd\libxnd
+!endif
+
+OPT = /MT /Ox /GS /EHsc /fp:strict
+OPT_SHARED = /DGM_EXPORT /DNDT_IMPORT /DXND_IMPORT /MD /Ox /GS /EHsc /fp:strict /Fo.objs^\
+
+COMMON_CFLAGS = /nologo /W4 /wd4200 /wd4201 /wd4204
+CFLAGS = $(COMMON_CFLAGS) $(OPT)
+CFLAGS_SHARED = $(COMMON_CFLAGS) $(OPT_SHARED)
+
+
+default: $(LIBSTATIC) $(LIBSHARED)
+	copy /y gumath.h ..\python\gumath
+	copy /y $(LIBSTATIC) ..\python\gumath
+	copy /y $(LIBIMPORT) ..\python\gumath
+	copy /y $(LIBSHARED) ..\python\gumath
+
+
+OBJS = apply.obj func.obj nploops.obj tbl.obj xndloops.obj \
+       unary.obj binary.obj examples.obj graph.obj pdist.obj
+
+SHARED_OBJS = .objs/apply.obj .objs/func.obj .objs/nploops.obj .objs/tbl.obj .objs/xndloops.obj \
+              .objs/unary.obj .objs/binary.obj .objs/examples.obj .objs/graph.obj .objs/pdist.obj
+
+
+$(LIBSTATIC):\
+Makefile $(OBJS)
+	-@if exist $@ del $(LIBSTATIC)
+	lib /nologo /out:$(LIBSTATIC) $(OBJS)
+
+$(LIBSHARED):\
+Makefile $(SHARED_OBJS)
+	-@if exist $@ del $(LIBSHARED)
+	link /nologo /DLL /MANIFEST /out:$(LIBSHARED) /implib:$(LIBIMPORT) $(SHARED_OBJS) \
+             "/LIBPATH:$(LIBNDTYPESDIR)" $(LIBNDTYPESIMPORT) \
+             "/LIBPATH:$(LIBXNDDIR)" $(LIBXNDIMPORT)
+	mt /nologo -manifest $(LIBSHARED).manifest -outputresource:$(LIBSHARED);2
+
+
+apply.obj:\
+Makefile apply.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c apply.c
+
+.objs\apply.obj:\
+Makefile apply.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c apply.c
+
+func.obj:\
+Makefile func.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c func.c
+
+.objs\func.obj:\
+Makefile func.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c func.c
+
+nploops.obj:\
+Makefile nploops.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c nploops.c
+
+.objs\nploops.obj:\
+Makefile nploops.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c nploops.c
+
+tbl.obj:\
+Makefile tbl.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c tbl.c
+
+.objs\tbl.obj:\
+Makefile tbl.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c tbl.c
+
+xndloops.obj:\
+Makefile xndloops.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c xndloops.c
+
+.objs\xndloops.obj:\
+Makefile xndloops.c gumath.h
+	$(CC) "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c xndloops.c
+
+unary.obj:\
+Makefile kernels\unary.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c kernels\unary.c
+
+.objs\unary.obj:\
+Makefile kernels\unary.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c kernels\unary.c
+
+binary.obj:\
+Makefile kernels\binary.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c kernels\binary.c
+
+.objs\binary.obj:\
+Makefile kernels\binary.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c kernels\binary.c
+
+examples.obj:\
+Makefile extending\examples.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c extending\examples.c
+
+.objs\examples.obj:\
+Makefile extending\examples.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c extending\examples.c
+
+graph.obj:\
+Makefile extending\graph.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c extending\graph.c
+
+.objs\graph.obj:\
+Makefile extending\graph.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c extending\graph.c
+
+pdist.obj:\
+Makefile extending\pdist.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS) -c extending\pdist.c
+
+.objs\pdist.obj:\
+Makefile extending\pdist.c gumath.h
+	$(CC) -I. "-I$(LIBNDTYPESINCLUDE)" "-I$(LIBXNDINCLUDE)" $(CFLAGS_SHARED) -c extending\pdist.c
+
+
+FORCE:
+
+clean: FORCE
+	del /q /f *.exe *.obj *.lib *.dll *.exp *.manifest 2>NUL
+	cd .objs && del /q /f *.obj 2>NUL
+	if exist "..\build\" rd /q /s "..\build\"
+	if exist "..\dist\" rd /q /s "..\dist\"
+	if exist "..\MANIFEST" del "..\MANIFEST"
+	if exist "..\record.txt" del "..\record.txt"
+	cd ..\python\gumath && del *.lib *.dll *.pyd gumath.h 2>NUL
+
+distclean: clean
+	del Makefile 2>NUL
+
+
+

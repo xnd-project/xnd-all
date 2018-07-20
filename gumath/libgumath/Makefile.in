@@ -1,0 +1,162 @@
+
+# ==============================================================================
+#                          Unix Makefile for libxnd
+# ==============================================================================
+
+
+LIBSTATIC = @LIBSTATIC@
+LIBNAME = @LIBNAME@
+LIBSONAME = @LIBSONAME@
+LIBSHARED = @LIBSHARED@
+
+CC = @CC@
+LD = @LD@
+AR = @AR@
+RANLIB = @RANLIB@
+
+GM_INCLUDES = @CONFIGURE_INCLUDES@
+
+CONFIGURE_CFLAGS = @CONFIGURE_CFLAGS@
+GM_CFLAGS = $(strip -I$(GM_INCLUDES) $(CONFIGURE_CFLAGS) $(CFLAGS))
+GM_CFLAGS_SHARED = $(GM_CFLAGS) -fPIC
+
+CONFIGURE_LDFLAGS = @CONFIGURE_LDFLAGS@
+GM_LDFLAGS = $(strip $(CONFIGURE_LDFLAGS) $(LDFLAGS))
+
+
+default: $(LIBSTATIC) $(LIBSHARED)
+
+
+OBJS = apply.o func.o nploops.o tbl.o xndloops.o unary.o binary.o \
+       examples.o bfloat16.o graph.o quaternion.o pdist.o
+
+SHARED_OBJS = .objs/apply.o .objs/func.o .objs/nploops.o .objs/tbl.o .objs/xndloops.o \
+              .objs/unary.o .objs/binary.o .objs/examples.o .objs/bfloat16.o .objs/graph.o \
+              .objs/quaternion.o .objs/pdist.o
+
+
+$(LIBSTATIC): Makefile $(OBJS)
+	$(AR) rc $(LIBSTATIC) $(OBJS)
+	$(RANLIB) $(LIBSTATIC)
+
+$(LIBSHARED): Makefile $(SHARED_OBJS)
+	$(LD) $(GM_LDFLAGS) -o $(LIBSHARED) $(SHARED_OBJS)
+	ln -sf $(LIBSHARED) $(LIBNAME)
+	ln -sf $(LIBSHARED) $(LIBSONAME)
+
+
+apply.o:\
+Makefile apply.c gumath.h
+	$(CC) $(GM_CFLAGS) -c apply.c
+
+.objs/apply.o:\
+Makefile apply.c gumath.h
+	$(CC) $(GM_CFLAGS_SHARED) -c apply.c -o .objs/apply.o
+
+func.o:\
+Makefile func.c gumath.h
+	$(CC) $(GM_CFLAGS) -c func.c
+
+.objs/func.o:\
+Makefile func.c gumath.h
+	$(CC) $(GM_CFLAGS_SHARED) -c func.c -o .objs/func.o
+
+nploops.o:\
+Makefile nploops.c gumath.h
+	$(CC) $(GM_CFLAGS) -c nploops.c
+
+.objs/nploops.o:\
+Makefile nploops.c gumath.h
+	$(CC) $(GM_CFLAGS_SHARED) -c nploops.c -o .objs/nploops.o
+
+tbl.o:\
+Makefile tbl.c gumath.h
+	$(CC) $(GM_CFLAGS) -c tbl.c
+
+.objs/tbl.o:\
+Makefile tbl.c gumath.h
+	$(CC) $(GM_CFLAGS_SHARED) -c tbl.c -o .objs/tbl.o
+
+xndloops.o:\
+Makefile xndloops.c gumath.h
+	$(CC) $(GM_CFLAGS) -c xndloops.c
+
+.objs/xndloops.o:\
+Makefile xndloops.c gumath.h
+	$(CC) $(GM_CFLAGS_SHARED) -c xndloops.c -o .objs/xndloops.o
+
+unary.o:\
+Makefile kernels/unary.c gumath.h
+	$(CC) -I. $(GM_CFLAGS) -c kernels/unary.c
+
+.objs/unary.o:\
+Makefile kernels/unary.c gumath.h
+	$(CC) -I. $(GM_CFLAGS_SHARED) -c kernels/unary.c -o .objs/unary.o
+
+binary.o:\
+Makefile kernels/binary.c gumath.h
+	$(CC) -I. $(GM_CFLAGS) -c kernels/binary.c
+
+.objs/binary.o:\
+Makefile kernels/binary.c gumath.h
+	$(CC) -I. $(GM_CFLAGS_SHARED) -c kernels/binary.c -o .objs/binary.o
+
+examples.o:\
+Makefile extending/examples.c gumath.h
+	$(CC) -I. $(GM_CFLAGS) -c extending/examples.c -o examples.o
+
+.objs/examples.o:\
+Makefile extending/examples.c gumath.h
+	$(CC) -I. $(GM_CFLAGS_SHARED) -c extending/examples.c -o .objs/examples.o
+
+bfloat16.o:\
+Makefile extending/bfloat16.c gumath.h
+	$(CC) -I. $(GM_CFLAGS) -c extending/bfloat16.c -o bfloat16.o
+
+.objs/bfloat16.o:\
+Makefile extending/bfloat16.c gumath.h
+	$(CC) -I. $(GM_CFLAGS_SHARED) -c extending/bfloat16.c -o .objs/bfloat16.o
+
+graph.o:\
+Makefile extending/graph.c gumath.h
+	$(CC) -I. $(GM_CFLAGS) -c extending/graph.c -o graph.o
+
+.objs/graph.o:\
+Makefile extending/graph.c gumath.h
+	$(CC) -I. $(GM_CFLAGS_SHARED) -c extending/graph.c -o .objs/graph.o
+
+quaternion.o:\
+Makefile extending/quaternion.c gumath.h
+	$(CC) -I. $(GM_CFLAGS) -c extending/quaternion.c -o quaternion.o
+
+.objs/quaternion.o:\
+Makefile extending/quaternion.c gumath.h
+	$(CC) -I. $(GM_CFLAGS_SHARED) -c extending/quaternion.c -o .objs/quaternion.o
+
+pdist.o:\
+Makefile extending/pdist.c gumath.h
+	$(CC) -I. $(GM_CFLAGS) -c extending/pdist.c -o pdist.o
+
+.objs/pdist.o:\
+Makefile extending/pdist.c gumath.h
+	$(CC) -I. $(GM_CFLAGS_SHARED) -c extending/pdist.c -o .objs/pdist.o
+
+
+# Coverage
+coverage:\
+Makefile clean runtest
+	./tests/runtest
+	for file in *.c; do gcov -l "$$file" > /dev/null 2>&1; done
+
+FORCE:
+
+clean: FORCE
+	rm -f *.o *.so *.gch *.gcda *.gcno *.gcov *.dyn *.dpi *.lock
+	rm -f $(LIBSTATIC) $(LIBSHARED) $(LIBSONAME) $(LIBNAME)
+	cd .objs && rm -f *.o *.so *.gch *.gcda *.gcno *.gcov *.dyn *.dpi *.lock
+
+distclean: clean
+	rm -f Makefile
+
+
+
