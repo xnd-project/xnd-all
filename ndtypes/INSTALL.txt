@@ -1,0 +1,101 @@
+
+
+Unix: libndtypes build instructions
+===================================
+
+# Build
+./configure
+make
+
+# Test
+make check
+
+# Install
+make install
+
+# Clean
+make clean
+
+# Distclean
+make distclean
+
+
+Windows: libndtypes build instructions
+======================================
+
+See vcbuild/INSTALL.txt.
+
+
+
+Unix/Windows: Python module build instructions
+==============================================
+
+To avoid shared library mismatches, the Python module builds with an rpath
+and ships the library inside the package.
+
+Unless you are a distributor with tight control over the system library
+versions, it is not recommended to install the library for the Python
+module.
+
+
+Build all
+---------
+
+# Build libndtypes and the module (libndtypes is copied into the package)
+python3 setup.py build
+
+# Test
+python3 setup.py test
+
+# Doctest (optional, relies on Sphinx)
+python3 setup.py doctest
+
+# Install
+python3 setup.py install
+
+# Clean libndtypes and the module
+python3 setup.py distclean
+
+
+Build the module only (for developing)
+--------------------------------------
+
+First, build libndtypes as above. This also copies the shared library into
+the package.  Then, to avoid rebuilding the library repeatedly, use:
+
+# Build the module
+python3 setup.py module
+
+# Clean the module
+python3 setup.py clean
+
+
+Alternative install (for developing)
+------------------------------------
+
+# Install the package into a local directory.  This is mainly useful for
+# developing xnd or gufuncs:
+python3 setup.py install --local="$PWD/../python"
+
+# Windows:
+python.exe setup.py install --local="%cd%\..\python"
+
+
+Alternative install with conda (for developing)
+-----------------------------------------------
+
+# Install the ndtypes package into a local directory.
+
+# Create and activate a new conda environment:
+conda create --name xnd python=3
+conda activate xnd
+
+# Use conda to build libndtypes and ndtypes:
+conda build .conda/libndtypes
+conda build .conda/ndtypes
+
+# Use conda to install the local version of the library and the
+# Python module:
+conda install --use-local ndtypes
+
+

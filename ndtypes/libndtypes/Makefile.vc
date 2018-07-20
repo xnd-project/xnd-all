@@ -1,0 +1,269 @@
+
+# ======================================================================
+#                Visual C (nmake) Makefile for libndtypes
+# ======================================================================
+
+LIBSTATIC = libndtypes-0.2.0dev3.lib
+LIBIMPORT = libndtypes-0.2.0dev3.dll.lib
+LIBSHARED = libndtypes-0.2.0dev3.dll
+
+OPT = /MT /Ox /GS /EHsc
+OPT_SHARED = /DNDT_EXPORT /MD /Ox /GS /EHsc /Fo.objs^\
+
+COMMON_CFLAGS = /nologo /W4 /wd4200 /wd4201 /wd4204
+COMMON_CFLAGS_FOR_GENERATED = /nologo /W4 /wd4200 /wd4201 /wd4244 /wd4267 /wd4702 /wd4127 /DYY_NO_UNISTD_H=1 /D__STDC_VERSION__=199901L
+COMMON_CFLAGS_FOR_PARSER = /nologo /W4 /wd4200 /wd4201 /wd4090 /nologo /DYY_NO_UNISTD_H=1
+
+CFLAGS = $(COMMON_CFLAGS) $(OPT)
+CFLAGS_SHARED = $(COMMON_CFLAGS) $(OPT_SHARED)
+
+CFLAGS_FOR_GENERATED = $(COMMON_CFLAGS_FOR_GENERATED) $(OPT)
+CFLAGS_FOR_GENERATED_SHARED = $(COMMON_CFLAGS_FOR_GENERATED) $(OPT_SHARED)
+
+CFLAGS_FOR_PARSER = $(COMMON_CFLAGS_FOR_PARSER) $(OPT)
+CFLAGS_FOR_PARSER_SHARED = $(COMMON_CFLAGS_FOR_PARSER) $(OPT_SHARED)
+
+
+default: $(LIBSTATIC) $(LIBSHARED)
+	copy /y ndtypes.h ..\python\ndtypes
+	copy /y $(LIBSTATIC) ..\python\ndtypes
+	copy /y $(LIBIMPORT) ..\python\ndtypes
+	copy /y $(LIBSHARED) ..\python\ndtypes
+
+
+OBJS = alloc.obj attr.obj context.obj copy.obj equal.obj encodings.obj \
+       grammar.obj io.obj lexer.obj match.obj ndtypes.obj parsefuncs.obj \
+       parser.obj seq.obj substitute.obj symtable.obj util.obj values.obj
+
+SHARED_OBJS = .objs\alloc.obj .objs\attr.obj .objs\context.obj .objs\copy.obj \
+              .objs\equal.obj .objs\encodings.obj .objs\grammar.obj .objs\io.obj \
+              .objs\lexer.obj .objs\match.obj .objs\ndtypes.obj .objs\parsefuncs.obj \
+              .objs\parser.obj .objs\seq.obj .objs\substitute.obj .objs\symtable.obj \
+              .objs\util.obj .objs\values.obj
+
+
+COMPAT_OBJS = compat\bpgrammar.obj compat\bplexer.obj compat\import.obj compat\export.obj
+
+COMPAT_SHARED_OBJS = compat\.objs\bpgrammar.obj compat\.objs\bplexer.obj \
+                     compat\.objs\import.obj compat\.objs\export.obj
+
+SERIALIZE_OBJS = serialize\serialize.obj serialize\deserialize.obj
+
+SERIALIZE_SHARED_OBJS = serialize\.objs\serialize.obj serialize\.objs\deserialize.obj
+
+
+$(LIBSTATIC):\
+Makefile $(OBJS) $(COMPAT_OBJS) $(SERIALIZE_OBJS)
+	-@if exist $@ del $(LIBSTATIC)
+	lib /nologo /out:$(LIBSTATIC) $(OBJS) $(COMPAT_OBJS) $(SERIALIZE_OBJS)
+
+$(LIBSHARED):\
+Makefile $(SHARED_OBJS) $(COMPAT_SHARED_OBJS) $(SERIALIZE_SHARED_OBJS)
+	-@if exist $@ del $(LIBSHARED)
+	link /nologo /DLL /MANIFEST /out:$(LIBSHARED) /implib:$(LIBIMPORT) \
+            $(SHARED_OBJS) $(COMPAT_SHARED_OBJS) $(SERIALIZE_SHARED_OBJS)
+	mt /nologo -manifest $(LIBSHARED).manifest -outputresource:$(LIBSHARED);2
+
+alloc.obj:\
+Makefile alloc.c ndtypes.h
+	$(CC) $(CFLAGS) -c alloc.c
+
+.objs\alloc.obj:\
+Makefile alloc.c ndtypes.h
+	$(CC) $(CFLAGS_SHARED) -c alloc.c
+
+attr.obj:\
+Makefile attr.c attr.h ndtypes.h
+	$(CC) $(CFLAGS) -c attr.c
+
+.objs\attr.obj:\
+Makefile attr.c attr.h ndtypes.h
+	$(CC) $(CFLAGS_SHARED) -c attr.c
+
+context.obj:\
+Makefile context.c ndtypes.h
+	$(CC) $(CFLAGS) -c context.c
+
+.objs\context.obj:\
+Makefile context.c ndtypes.h
+	$(CC) $(CFLAGS_SHARED) -c context.c
+
+copy.obj:\
+Makefile copy.c ndtypes.h
+	$(CC) $(CFLAGS) -c copy.c
+
+.objs\copy.obj:\
+Makefile copy.c ndtypes.h
+	$(CC) $(CFLAGS_SHARED) -c copy.c
+
+encodings.obj:\
+Makefile encodings.c ndtypes.h
+	$(CC) $(CFLAGS) -c encodings.c
+
+.objs\encodings.obj:\
+Makefile encodings.c ndtypes.h
+	$(CC) $(CFLAGS_SHARED) -c encodings.c
+
+io.obj:\
+Makefile io.c ndtypes.h
+	$(CC) $(CFLAGS) -c io.c
+
+.objs\io.obj:\
+Makefile io.c ndtypes.h
+	$(CC) $(CFLAGS_SHARED) -c io.c
+
+equal.obj:\
+Makefile equal.c ndtypes.h
+        $(CC) $(CFLAGS) -c equal.c
+
+.objs\equal.obj:\
+Makefile equal.c ndtypes.h
+        $(CC) $(CFLAGS_SHARED) -c equal.c
+
+grammar.obj:\
+Makefile grammar.c grammar.h lexer.h ndtypes.h parsefuncs.h seq.h
+	$(CC) $(CFLAGS_FOR_GENERATED) -c grammar.c
+
+.objs\grammar.obj:\
+Makefile grammar.c grammar.h lexer.h ndtypes.h parsefuncs.h seq.h
+	$(CC) $(CFLAGS_FOR_GENERATED_SHARED) -c grammar.c
+
+lexer.obj:\
+Makefile lexer.c grammar.h lexer.h parsefuncs.h
+	$(CC) $(CFLAGS_FOR_GENERATED) -c lexer.c
+
+.objs\lexer.obj:\
+Makefile lexer.c grammar.h lexer.h parsefuncs.h
+	$(CC) $(CFLAGS_FOR_GENERATED_SHARED) -c lexer.c
+
+match.obj:\
+Makefile match.c ndtypes.h symtable.h
+       $(CC) $(CFLAGS) -c match.c
+
+.objs\match.obj:\
+Makefile match.c ndtypes.h symtable.h
+       $(CC) $(CFLAGS_SHARED) -c match.c
+
+ndtypes.obj:\
+Makefile ndtypes.c ndtypes.h
+	$(CC) $(CFLAGS) -c ndtypes.c
+
+.objs\ndtypes.obj:\
+Makefile ndtypes.c ndtypes.h
+	$(CC) $(CFLAGS_SHARED) -c ndtypes.c
+
+parsefuncs.obj:\
+Makefile parsefuncs.c ndtypes.h parsefuncs.h seq.h
+	$(CC) $(CFLAGS) -c parsefuncs.c
+
+.objs\parsefuncs.obj:\
+Makefile parsefuncs.c ndtypes.h parsefuncs.h seq.h
+	$(CC) $(CFLAGS_SHARED) -c parsefuncs.c
+
+parser.obj:\
+Makefile parser.c grammar.h lexer.h ndtypes.h seq.h
+	$(CC) $(CFLAGS_FOR_PARSER) -c parser.c
+
+.objs\parser.obj:\
+Makefile parser.c grammar.h lexer.h ndtypes.h seq.h
+	$(CC) $(CFLAGS_FOR_PARSER_SHARED) -c parser.c
+
+seq.obj:\
+Makefile seq.c ndtypes.h seq.h
+	$(CC) $(CFLAGS) -c seq.c
+
+.objs\seq.obj:\
+Makefile seq.c ndtypes.h seq.h
+	$(CC) $(CFLAGS_SHARED) -c seq.c
+
+substitute.obj:\
+Makefile substitute.c ndtypes.h substitute.h symtable.h
+        $(CC) $(CFLAGS) -c substitute.c
+
+.objs\substitute.obj:\
+Makefile substitute.c ndtypes.h substitute.h symtable.h
+        $(CC) $(CFLAGS_SHARED) -c substitute.c
+
+symtable.obj:\
+Makefile symtable.c ndtypes.h symtable.h
+        $(CC) $(CFLAGS) -c symtable.c
+
+.objs\symtable.obj:\
+Makefile symtable.c ndtypes.h symtable.h
+        $(CC) $(CFLAGS_SHARED) -c symtable.c
+
+util.obj:\
+Makefile util.c ndtypes.h
+        $(CC) $(CFLAGS) -c util.c
+
+.objs\util.obj:\
+Makefile util.c ndtypes.h
+        $(CC) $(CFLAGS_SHARED) -c util.c
+
+values.obj:\
+Makefile values.c ndtypes.h
+        $(CC) $(CFLAGS) -c values.c
+
+.objs\values.obj:\
+Makefile values.c ndtypes.h
+        $(CC) $(CFLAGS_SHARED) -c values.c
+
+
+# compat directory
+$(COMPAT_OBJS) $(COMPAT_SHARED_OBJS):\
+Makefile compat\Makefile compat\bpgrammar.y compat\bplexer.l compat\import.c \
+ndtypes.h seq.h
+        cd compat && nmake
+
+# serialize directory
+$(SERIALIZE_OBJS) $(SERIALIZE_SHARED_OBJS):\
+Makefile serialize\Makefile serialize\serialize.c serialize\deserialize.c \
+ndtypes.h
+        cd serialize && nmake
+
+
+check:\
+Makefile default
+	cd tests && copy /y Makefile.vc Makefile && nmake /nologo
+	.\tests\runtest.exe
+	.\tests\runtest_shared.exe
+
+
+# Benchmark
+bench:\
+Makefile tools\bench.c ndtypes.h $(LIBSTATIC)
+	$(CC) $(CFLAGS) /Febench.exe tools\bench.c $(LIBSTATIC)
+
+
+# Print the AST
+print_ast:\
+Makefile tools\print_ast.c ndtypes.h $(LIBSTATIC)
+	$(CC) $(CFLAGS) -o print_ast tools\print_ast.c $(LIBSTATIC)
+
+
+# Parse a file that contains a datashape type
+indent:\
+Makefile indent.c ndtypes.h $(LIBSTATIC)
+	$(CC) $(CFLAGS) /Feindent tools\indent.c $(LIBSTATIC)
+
+
+FORCE:
+
+clean: FORCE
+	del /q /f *.exe *.obj *.lib *.dll *.exp *.manifest 2>NUL
+	cd .objs && del /q /f *.obj 2>NUL
+	if exist "..\build\" rd /q /s "..\build\"
+	if exist "..\dist\" rd /q /s "..\dist\"
+	if exist "..\MANIFEST" del "..\MANIFEST"
+	if exist "..\record.txt" del "..\record.txt"
+	cd ..\python\ndtypes && del *.lib *.dll *.pyd ndtypes.h 2>NUL
+	cd compat && nmake clean
+	cd serialize && nmake clean
+
+distclean: clean
+	cd compat && nmake distclean
+	cd serialize && nmake distclean
+	del Makefile 2>NUL
+	del ndtypes.h 2>NUL
+
+

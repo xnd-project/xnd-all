@@ -1,0 +1,87 @@
+
+# ==============================================================================
+#                          Unix Makefile for libndtypes
+# ==============================================================================
+
+
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+LIBSTATIC = @LIBSTATIC@
+LIBNAME = @LIBNAME@
+LIBSONAME = @LIBSONAME@
+LIBSHARED = @LIBSHARED@
+INSTALL = @INSTALL@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+includedir = @includedir@
+libdir = @libdir@
+datarootdir = @datarootdir@
+docdir = @docdir@
+
+
+default: FORCE
+	cd libndtypes && $(MAKE)
+	$(INSTALL) -m 644 libndtypes/ndtypes.h python/ndtypes
+	$(INSTALL) -m 644 libndtypes/$(LIBSTATIC) python/ndtypes
+	$(INSTALL) -m 755 libndtypes/$(LIBSHARED) python/ndtypes
+	cd python/ndtypes && ln -sf $(LIBSHARED) $(LIBSONAME) && ln -sf $(LIBSHARED) $(LIBNAME)
+
+parser: FORCE
+	cd libndtypes && $(MAKE) parser
+	cd libndtypes/compat && $(MAKE) parser
+
+runtest: default
+	cd libndtypes/tests && $(MAKE)
+
+check: runtest
+	cd libndtypes/tests && ./runtest
+	@printf "\n\n"
+	cd libndtypes/tests && @LIBRARY_PATH@=.. ./runtest_shared
+
+memcheck: runtest
+	cd libndtypes/tests && valgrind --leak-check=full --show-leak-kinds=all --suppressions=valgrind.supp ./runtest
+	@printf "\n\n"
+	cd libndtypes/tests && @LIBRARY_PATH@=.. valgrind --leak-check=full --show-leak-kinds=all --suppressions=valgrind.supp ./runtest_shared
+
+coverage: FORCE
+	cd libndtypes && $(MAKE) coverage
+	cd libndtypes/tests && $(MAKE) coverage
+	cd libndtypes/tests && @LIBRARY_PATH@=.. ./runtest
+	cd libndtypes && for file in *.c; do gcov -l "$$file" > /dev/null 2>&1; done
+
+install: install_libs @NDT_INSTALL_DOCS@
+
+install_libs: FORCE
+	$(INSTALL) -d -m 755 $(DESTDIR)$(includedir)
+	$(INSTALL) -m 644 libndtypes/ndtypes.h $(DESTDIR)$(includedir)
+	$(INSTALL) -d -m 755 $(DESTDIR)$(libdir)
+	$(INSTALL) -m 644 libndtypes/$(LIBSTATIC) $(DESTDIR)$(libdir)
+	$(INSTALL) -m 755 libndtypes/$(LIBSHARED) $(DESTDIR)$(libdir)
+	cd $(DESTDIR)$(libdir) && ln -sf $(LIBSHARED) $(LIBSONAME) && ln -sf $(LIBSHARED) $(LIBNAME)
+
+install_docs: FORCE
+	$(INSTALL) -d -m 755 $(DESTDIR)$(docdir)
+	cp -R doc/* $(DESTDIR)$(docdir)
+
+clean: FORCE
+	cd libndtypes && if [ -f Makefile ]; then $(MAKE) clean; else exit 0; fi
+	cd libndtypes/tests && if [ -f Makefile ]; then $(MAKE) clean; else exit 0; fi
+	rm -rf build
+	cd python && rm -rf __pycache__
+	cd python/ndtypes && rm -f *.so $(LIBSTATIC) $(LIBSHARED) $(LIBSONAME) $(LIBNAME)
+	cd python/ndtypes && rm -rf __pycache__
+
+distclean: FORCE
+	cd libndtypes && if [ -f Makefile ]; then $(MAKE) distclean; else exit 0; fi
+	cd libndtypes/tests && if [ -f Makefile ]; then $(MAKE) distclean; else exit 0; fi
+	rm -f config.h config.log config.status Makefile
+	rm -rf build dist MANIFEST record.txt
+	cd python && rm -rf __pycache__ ndtypes.egg-info
+	cd python/ndtypes && rm -f *.so $(LIBSTATIC) $(LIBSHARED) $(LIBSONAME) $(LIBNAME) ndtypes.h
+	cd python/ndtypes && rm -rf __pycache__
+	cd .conda/ndtypes && rm -rf test
+
+FORCE:
+
+
+

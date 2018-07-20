@@ -1,0 +1,26 @@
+skip_tags: true
+
+matrix:
+  fast_finish: true
+
+os: Visual Studio 2015
+
+build_script:
+  - ps: Start-FileDownload "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe" C:\Miniconda.exe
+  - cmd: C:\Miniconda.exe /S /D=C:\Py
+  - set PATH=C:\Py;C:\Py\Scripts;C:\Py\Library\bin;%PATH%
+  - conda update --yes conda
+  - conda install --yes conda-build=3.3.0
+  - conda install --yes anaconda-client
+  - conda-build .conda/libndtypes
+  - conda-build .conda/ndtypes
+  - ps: $env:LIBNDTYPES = (conda build --output .conda/libndtypes)
+  - ps: $env:NDTYPES = (conda build --output .conda/ndtypes)
+
+on_success:
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBNDTYPES --user xnd --label dev "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:NDTYPES --user xnd --label dev "2>&1" }
+
+environment:
+  anaconda_token:
+    secure: rTnsCbMjHi/mOYo8Tz2SzaungqlrdypPkMMzuMniN06Gv2fgCizppeKw2gz/kQ7T

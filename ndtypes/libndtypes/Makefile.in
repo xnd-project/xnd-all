@@ -1,0 +1,271 @@
+
+# ==============================================================================
+#                          Unix Makefile for libndtypes
+# ==============================================================================
+
+
+LIBSTATIC = @LIBSTATIC@
+LIBNAME = @LIBNAME@
+LIBSONAME = @LIBSONAME@
+LIBSHARED = @LIBSHARED@
+
+CC = @CC@
+LD = @LD@
+AR = @AR@
+RANLIB = @RANLIB@
+
+CONFIGURE_CFLAGS = @CONFIGURE_CFLAGS@
+NDT_CFLAGS = $(strip $(CONFIGURE_CFLAGS) $(CFLAGS))
+NDT_CFLAGS_SHARED = $(NDT_CFLAGS) -fPIC
+
+CONFIGURE_LDFLAGS = @CONFIGURE_LDFLAGS@
+NDT_LDFLAGS = $(strip $(CONFIGURE_LDFLAGS) $(LDFLAGS))
+
+CONFIGURE_COV_CFLAGS = @CONFIGURE_COV_CFLAGS@
+CONFIGURE_COV_LDFLAGS = @CONFIGURE_COV_LDFLAGS@
+ifeq ($(MAKECMDGOALS), coverage)
+  NDT_CFLAGS = $(strip $(CONFIGURE_COV_CFLAGS) $(CFLAGS))
+  NDT_LDFLAGS = $(strip $(CONFIGURE_COV_LDFLAGS) $(LDFLAGS))
+endif
+
+
+default: $(LIBSTATIC) $(LIBSHARED)
+
+
+OBJS = alloc.o attr.o context.o copy.o encodings.o equal.o grammar.o io.o \
+       lexer.o match.o ndtypes.o parsefuncs.o parser.o seq.o substitute.o \
+       symtable.o util.o values.o
+
+SHARED_OBJS = .objs/alloc.o .objs/attr.o .objs/context.o .objs/copy.o \
+              .objs/encodings.o .objs/equal.o .objs/grammar.o .objs/io.o \
+              .objs/lexer.o .objs/match.o .objs/ndtypes.o .objs/parsefuncs.o \
+              .objs/parser.o .objs/seq.o .objs/substitute.o .objs/symtable.o \
+              .objs/util.o .objs/values.o
+
+
+COMPAT_OBJS = compat/bpgrammar.o compat/bplexer.o compat/import.o compat/export.o
+
+COMPAT_SHARED_OBJS = compat/.objs/bpgrammar.o compat/.objs/bplexer.o \
+                     compat/.objs/import.o compat/.objs/export.o
+
+SERIALIZE_OBJS = serialize/serialize.o serialize/deserialize.o
+
+SERIALIZE_SHARED_OBJS = serialize/.objs/serialize.o serialize/.objs/deserialize.o
+
+
+$(LIBSTATIC): Makefile $(OBJS) $(COMPAT_OBJS) $(SERIALIZE_OBJS)
+	$(AR) rc $(LIBSTATIC) $(OBJS) $(COMPAT_OBJS) $(SERIALIZE_OBJS)
+	$(RANLIB) $(LIBSTATIC)
+
+
+$(LIBSHARED): Makefile $(SHARED_OBJS) $(COMPAT_SHARED_OBJS) $(SERIALIZE_SHARED_OBJS)
+	$(LD) $(NDT_LDFLAGS) -o $(LIBSHARED) $(SHARED_OBJS) $(COMPAT_SHARED_OBJS) $(SERIALIZE_SHARED_OBJS)
+	ln -sf $(LIBSHARED) $(LIBNAME)
+	ln -sf $(LIBSHARED) $(LIBSONAME)
+
+
+alloc.o:\
+Makefile alloc.c ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c alloc.c
+
+.objs/alloc.o:\
+Makefile alloc.c ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c alloc.c -o .objs/alloc.o
+
+attr.o:\
+Makefile attr.c attr.h ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c attr.c
+
+.objs/attr.o:\
+Makefile attr.c attr.h ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c attr.c -o .objs/attr.o
+
+context.o:\
+Makefile context.c ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c context.c
+
+.objs/context.o:\
+Makefile context.c ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c context.c -o .objs/context.o
+
+copy.o:\
+Makefile copy.c ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c copy.c
+
+.objs/copy.o:\
+Makefile copy.c ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c copy.c -o .objs/copy.o
+
+encodings.o:\
+Makefile encodings.c ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c encodings.c
+
+.objs/encodings.o:\
+Makefile encodings.c ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c encodings.c -o .objs/encodings.o
+
+io.o:\
+Makefile io.c ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c io.c
+
+.objs/io.o:\
+Makefile io.c ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c io.c -o .objs/io.o
+
+equal.o:\
+Makefile equal.c ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c equal.c
+
+.objs/equal.o:\
+Makefile equal.c ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c equal.c -o .objs/equal.o
+
+grammar.o:\
+Makefile grammar.c grammar.h lexer.h ndtypes.h parsefuncs.h seq.h
+	$(CC) $(NDT_CFLAGS) -c grammar.c
+
+.objs/grammar.o:\
+Makefile grammar.c grammar.h lexer.h ndtypes.h parsefuncs.h seq.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c grammar.c -o .objs/grammar.o
+
+lexer.o:\
+Makefile lexer.c grammar.h lexer.h parsefuncs.h
+	$(CC) $(NDT_CFLAGS) -c lexer.c
+
+.objs/lexer.o:\
+Makefile lexer.c grammar.h lexer.h parsefuncs.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c lexer.c -o .objs/lexer.o
+
+match.o:\
+Makefile match.c ndtypes.h symtable.h
+	$(CC) $(NDT_CFLAGS) -c match.c
+
+.objs/match.o:\
+Makefile match.c ndtypes.h symtable.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c match.c -o .objs/match.o
+
+ndtypes.o:\
+Makefile ndtypes.c ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c ndtypes.c
+
+.objs/ndtypes.o:\
+Makefile ndtypes.c ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c ndtypes.c -o .objs/ndtypes.o
+
+parsefuncs.o:\
+Makefile parsefuncs.c ndtypes.h parsefuncs.h seq.h
+	$(CC) $(NDT_CFLAGS) -c parsefuncs.c
+
+.objs/parsefuncs.o:\
+Makefile parsefuncs.c ndtypes.h parsefuncs.h seq.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c parsefuncs.c -o .objs/parsefuncs.o
+
+parser.o:\
+Makefile parser.c grammar.h lexer.h ndtypes.h seq.h
+	$(CC) $(NDT_CFLAGS) -c parser.c
+
+.objs/parser.o:\
+Makefile parser.c grammar.h lexer.h ndtypes.h seq.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c parser.c -o .objs/parser.o
+
+seq.o:\
+Makefile seq.c ndtypes.h seq.h
+	$(CC) $(NDT_CFLAGS) -c seq.c
+
+.objs/seq.o:\
+Makefile seq.c ndtypes.h seq.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c seq.c -o .objs/seq.o
+
+substitute.o:\
+Makefile substitute.c ndtypes.h substitute.h symtable.h
+	$(CC) $(NDT_CFLAGS) -c substitute.c
+
+.objs/substitute.o:\
+Makefile substitute.c ndtypes.h substitute.h symtable.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c substitute.c -o .objs/substitute.o
+
+symtable.o:\
+Makefile symtable.c ndtypes.h symtable.h
+	$(CC) $(NDT_CFLAGS) -c symtable.c
+
+.objs/symtable.o:\
+Makefile symtable.c ndtypes.h symtable.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c symtable.c -o .objs/symtable.o
+
+util.o:\
+Makefile util.c ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c util.c
+
+.objs/util.o:\
+Makefile util.c ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c util.c -o .objs/util.o
+
+values.o:\
+Makefile values.c ndtypes.h
+	$(CC) $(NDT_CFLAGS) -c values.c
+
+.objs/values.o:\
+Makefile values.c ndtypes.h
+	$(CC) $(NDT_CFLAGS_SHARED) -c values.c -o .objs/values.o
+
+
+# Without these, GNU make automatically builds the parser.
+%.c: %.y
+%.c: %.l
+
+parser: FORCE
+	bison -Wall -o grammar.c -pndt_yy --defines=grammar.h grammar.y
+	flex -o lexer.c -Pndt_yy --header-file=lexer.h lexer.l
+
+
+# compat directory
+$(COMPAT_OBJS) $(COMPAT_SHARED_OBJS):\
+Makefile compat/Makefile compat/bpgrammar.y compat/bplexer.l compat/import.c \
+ndtypes.h seq.h
+	cd compat && make
+
+# serialize directory
+$(SERIALIZE_OBJS) $(SERIALIZE_SHARED_OBJS):\
+Makefile serialize/Makefile serialize/serialize.c ndtypes.h
+	cd serialize && make
+
+
+# Coverage
+coverage:\
+Makefile clean $(LIBSTATIC) $(LIBSHARED)
+
+
+# Benchmark
+bench:\
+Makefile tools/bench.c ndtypes.h $(LIBSTATIC)
+	$(CC) -I. $(NDT_CFLAGS) -o bench tools/bench.c $(LIBSTATIC)
+
+
+# Print the AST
+print_ast:\
+Makefile tools/print_ast.c ndtypes.h $(LIBSTATIC)
+	$(CC) -I. $(NDT_CFLAGS) -o print_ast tools/print_ast.c $(LIBSTATIC)
+
+
+# Indent a file that contains a datashape type
+indent:\
+Makefile tools/indent.c ndtypes.h $(LIBSTATIC)
+	$(CC) -I. $(NDT_CFLAGS) -o indent tools/indent.c $(LIBSTATIC)
+
+
+FORCE:
+
+clean: FORCE
+	rm -f *.o *.so *.gch *.gcda *.gcno *.gcov *.dyn *.dpi *.lock
+	rm -f bench indent print_ast $(LIBSTATIC) $(LIBSHARED) $(LIBSONAME) $(LIBNAME)
+	cd .objs && rm -f *.o *.so *.gch *.gcda *.gcno *.gcov *.dyn *.dpi *.lock
+	cd compat && make clean
+	cd serialize && make clean
+
+distclean: clean
+	rm -f Makefile ndtypes.h
+	cd compat && make distclean
+	cd serialize && make distclean
+
+
+

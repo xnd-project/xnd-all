@@ -1,0 +1,30 @@
+#
+# The flex-generated lexer handles some allocation errors with a fatal error.
+# The fatal error still calls fprintf() before exiting.  We do the same as
+# PostgreSQL and redefine fprintf() to a function that -- in our case -- calls
+# longjmp().  The error is then handled in parser.c.
+#
+# With this scheme, blocks allocated by yy_scan_buffer() are still lost *if*
+# an allocation failure is deliberately triggered within that function.
+#
+# IOW, this leak only occurs when tests/runtests is compiled with -DTEST_ALLOC
+# and ndt_alloc_fail() is active.
+#
+
+{
+   flex_inadequate_error_handling_lexer
+   Memcheck:Leak
+   match-leak-kinds: all
+   ...
+   fun:ndt_yy_scan_buffer
+   fun:_ndt_from_string
+}
+
+{
+   flex_inadequate_error_handling_bplexer
+   Memcheck:Leak
+   match-leak-kinds: all
+   ...
+   fun:ndt_bp_scan_buffer
+   fun:ndt_from_bpformat
+}
