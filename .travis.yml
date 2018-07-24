@@ -30,13 +30,12 @@ matrix:
       compiler: clang
       before_install:
         - brew install python3
-        - brew install valgrind
       before_script:
         - export CC=clang
       script:
         - ./configure
         - make install
-        - make memcheck
+        - make check
 
     - language: objective-c
       os: osx
