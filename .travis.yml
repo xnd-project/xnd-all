@@ -25,6 +25,11 @@ matrix:
         - python3 setup.py develop
         - python3 setup.py test
 
+    - compiler: gcc
+      script:
+        - python3 setup.py install
+        - python3 setup.py test
+
     - language: objective-c
       os: osx
       compiler: clang
