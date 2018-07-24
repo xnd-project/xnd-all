@@ -33,11 +33,23 @@
 
 import sys
 import os
+import subprocess
+from shutil import copy2
+from glob import glob
 
 def err_exit():
     sys.stderr.write(
-        "error: valid required arguments are \"install\" or \"develop\"\n\n")
+        "setup.py: usage: python3 setup.py [install, develop, test]\n\n")
     sys.exit(1)
+
+def copy_tests():
+    for lib in "ndtypes", "xnd", "gumath":
+        pattern = os.path.join(lib, "python", "*.py")
+        files = glob(pattern)
+        dest = os.path.join("python", "test")
+        for f in files:
+            copy2(f, dest)
+
 
 if len(sys.argv) != 2:
     err_exit()
@@ -48,12 +60,35 @@ if sys.argv[1] == "install":
         os.system("'%s' setup.py install" % sys.executable)
         os.chdir("..")
 
+    copy_tests()
+
 elif sys.argv[1] == "develop":
     INSTALLDIR = os.path.join(os.getcwd(), "python")
     for lib in "ndtypes", "xnd", "gumath":
         os.chdir(lib)
         os.system("'%s' setup.py install --local=%s" % (sys.executable, INSTALLDIR))
         os.chdir("..")
+
+    copy_tests()
+
+elif sys.argv[1] == "test":
+    os.chdir("python")
+    python_path = os.getenv('PYTHONPATH')
+    cwd = os.getcwd()
+    path = cwd + ':' + python_path if python_path else cwd
+    env = os.environ.copy()
+    env['PYTHONPATH'] = path
+
+    ret = subprocess.call([sys.executable, "test/test_ndtypes.py", "--long"], env=env)
+    if ret != 0:
+        sys.exit(ret)
+
+    ret = subprocess.call([sys.executable, "test/test_xnd.py", "--long"], env=env)
+    if ret != 0:
+        sys.exit(ret)
+
+    ret = subprocess.call([sys.executable, "test/test_gumath.py"], env=env)
+    sys.exit(ret)
 
 else:
     err_exit()

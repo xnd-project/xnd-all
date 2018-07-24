@@ -50,14 +50,16 @@ install: libndtypes_install libxnd_install libgumath_install
 
 
 clean: FORCE
-	cd ndtypes && $(MAKE) clean
-	cd xnd && $(MAKE) clean
-	cd gumath && $(MAKE) clean
+	- cd ndtypes && $(MAKE) clean
+	- cd xnd && $(MAKE) clean
+	- cd gumath && $(MAKE) clean
 
 distclean: FORCE
-	cd ndtypes && $(MAKE) distclean
-	cd xnd && $(MAKE) distclean
-	cd gumath && $(MAKE) distclean
-	rm -rf config.log build
+	- cd ndtypes && $(MAKE) distclean
+	- cd xnd && $(MAKE) distclean
+	- cd gumath && $(MAKE) distclean
+	- cd python && rm -rf ndtypes xnd gumath __pycache__ *.egg-info
+	- cd python/test && rm -rf *.py __pycache__ *.egg-info
+	- rm -rf config.log build
 
 FORCE:

@@ -45,9 +45,11 @@ Install all Python modules into $PWD/python
 ===========================================
 
 python3 setup.py develop
+python3 setup.py test
 
 
 Install all Python modules into site-packages
 =============================================
 
 python3 setup.py install
+python3 setup.py test
