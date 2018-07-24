@@ -1,0 +1,50 @@
+sudo: required
+
+language: python
+python:
+  - 3.6
+
+matrix:
+  include:
+    - compiler: gcc
+      script:
+        - ./configure
+        - make install
+        - make check
+
+    - compiler: clang
+      before_script:
+        - sudo apt-get install -y valgrind
+      script:
+        - ./configure
+        - make install
+        - make memcheck
+
+    - compiler: gcc
+      script:
+        - python3 setup.py develop
+        - python3 setup.py test
+
+    - language: objective-c
+      os: osx
+      compiler: clang
+      before_install:
+        - brew install python3
+        - brew install valgrind
+      before_script:
+        - export CC=clang
+      script:
+        - ./configure
+        - make install
+        - make memcheck
+
+    - language: objective-c
+      os: osx
+      compiler: clang
+      before_install:
+        - brew install python3
+      before_script:
+        - export CC=clang
+      script:
+        - python3 setup.py develop
+        - python3 setup.py test
