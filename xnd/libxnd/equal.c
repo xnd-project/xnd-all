@@ -46,7 +46,7 @@
 /*****************************************************************************/
 
 int
-xnd_strict_equal(const xnd_t * const x, const xnd_t * const y, ndt_context_t *ctx)
+xnd_strict_equal(const xnd_t *x, const xnd_t *y, ndt_context_t *ctx)
 {
     const ndt_t * const t = x->type;
     const ndt_t * const u = y->type;
@@ -359,7 +359,7 @@ xnd_strict_equal(const xnd_t * const x, const xnd_t * const y, ndt_context_t *ct
             t->datasize != u->datasize) {
             return 0;
         }
-        return memcmp(x->ptr, y->ptr, t->datasize) == 0;
+        return memcmp(x->ptr, y->ptr, (size_t)t->datasize) == 0;
     }
 
     case FixedBytes: {
@@ -367,7 +367,7 @@ xnd_strict_equal(const xnd_t * const x, const xnd_t * const y, ndt_context_t *ct
             t->datasize != u->datasize) {
             return 0;
         }
-        return memcmp(x->ptr, y->ptr, t->datasize) == 0;
+        return memcmp(x->ptr, y->ptr, (size_t)t->datasize) == 0;
     }
 
     case String: {
@@ -390,7 +390,7 @@ xnd_strict_equal(const xnd_t * const x, const xnd_t * const y, ndt_context_t *ct
             return 0;
         }
 
-        return memcmp(a, b, asize) == 0;
+        return memcmp(a, b, (size_t)asize) == 0;
     }
 
     /* NOT REACHED: xnd types must be concrete. */
@@ -857,7 +857,7 @@ equal_complex128(const double real, const double imag, const xnd_t * const x)
 }
 
 int
-xnd_equal(const xnd_t * const x, const xnd_t * const y, ndt_context_t *ctx)
+xnd_equal(const xnd_t *x, const xnd_t *y, ndt_context_t *ctx)
 {
     const ndt_t * const t = x->type;
     const ndt_t * const u = y->type;
@@ -1155,7 +1155,7 @@ xnd_equal(const xnd_t * const x, const xnd_t * const y, ndt_context_t *ctx)
             u->datasize != t->datasize) {
             return 0;
         }
-        return memcmp(x->ptr, y->ptr, t->datasize) == 0;
+        return memcmp(x->ptr, y->ptr, (size_t)t->datasize) == 0;
     }
 
     case FixedBytes: {
@@ -1164,7 +1164,7 @@ xnd_equal(const xnd_t * const x, const xnd_t * const y, ndt_context_t *ctx)
             u->datasize != t->datasize) {
             return 0;
         }
-        return memcmp(x->ptr, y->ptr, t->datasize) == 0;
+        return memcmp(x->ptr, y->ptr, (size_t)t->datasize) == 0;
     }
 
     case String: {
@@ -1195,7 +1195,7 @@ xnd_equal(const xnd_t * const x, const xnd_t * const y, ndt_context_t *ctx)
             return 0;
         }
 
-        return memcmp(a, b, asize) == 0;
+        return memcmp(a, b, (size_t)asize) == 0;
     }
 
     /* NOT REACHED: intercepted by equal_ref(). */
