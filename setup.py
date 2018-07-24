@@ -57,7 +57,7 @@ if len(sys.argv) != 2:
 if sys.argv[1] == "install":
     for lib in "ndtypes", "xnd", "gumath":
         os.chdir(lib)
-        os.system("'%s' setup.py install" % sys.executable)
+        os.system('"%s" setup.py install' % sys.executable)
         os.chdir("..")
 
     copy_tests()
@@ -66,7 +66,7 @@ elif sys.argv[1] == "develop":
     INSTALLDIR = os.path.join(os.getcwd(), "python")
     for lib in "ndtypes", "xnd", "gumath":
         os.chdir(lib)
-        os.system("'%s' setup.py install --local=%s" % (sys.executable, INSTALLDIR))
+        os.system('"%s" setup.py install --local=%s' % (sys.executable, INSTALLDIR))
         os.chdir("..")
 
     copy_tests()
