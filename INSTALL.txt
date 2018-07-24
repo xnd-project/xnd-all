@@ -1,0 +1,53 @@
+
+
+xnd-all combines all individual xnd libraries as git subtrees. This is a
+convenience package that should facilitate developing and testing.
+
+Note that ./configure is currently extremely limited, since it just calls
+./configure in all libraries.  The only option is --prefix.  If --prefix
+is omitted, the libraries are installed into $PWD/build.
+
+The builds of libxnd and libgumath rely on previously installed libraries,
+so an explicit "make install" is required.
+
+
+The Python build is entirely separate from the library builds. Due to
+limitations of distutils, libraries are installed together with the
+C extensions.
+
+Naturally the C extensions could be built against system-installed
+libraries, but that has its own set of problems.
+
+
+Install all libraries into $PWD/build
+=====================================
+
+./configure
+make install
+make check
+
+# Valgrind
+make memcheck
+
+
+Install all libraries into /usr/local
+=====================================
+
+./configure --prefix=/usr/local
+make install
+make check
+
+# Valgrind
+make memcheck
+
+
+Install all Python modules into $PWD/python
+===========================================
+
+python3 setup.py develop
+
+
+Install all Python modules into site-packages
+=============================================
+
+python3 setup.py install
