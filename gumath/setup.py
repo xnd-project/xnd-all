@@ -136,7 +136,7 @@ if len(sys.argv) == 3 and sys.argv[1] == "install" and \
         "--install-headers=" + localdir]
 
     CONFIGURE_INCLUDES = ["%s/ndtypes" % localdir, "%s/xnd" % localdir]
-    CONFIGURE_LIBS = CONFIGURE_INCLUDES
+    INCLUDES = LIBS = CONFIGURE_LIBS = CONFIGURE_INCLUDES
     LIBGUMATHDIR = "%s/gumath" % localdir
     INSTALL_LIBS = True
 
@@ -299,7 +299,7 @@ setup (
     package_dir = {"": "python"},
     packages = ["gumath"],
     package_data = {"gumath": ["libgumath*", "gumath.h", "pygumath.h"]
-                    if INSTALL_LIBS else ["pygumath.h"]},
+                              if INSTALL_LIBS else ["pygumath.h"]},
     # List must be non-empty to trigger the build.
     ext_modules = [Extension('NA', sources=[])],
 )
@@ -307,4 +307,7 @@ setup (
 copy_ext()
 
 if INSTALL_LIBS and sys.platform != "win32" and not "bdist_wheel" in sys.argv:
+    shutil.copy2("python/gumath/%s" % LIBNAME, LIBGUMATHDIR)
+    shutil.copy2("python/gumath/%s" % LIBSONAME, LIBGUMATHDIR)
+    shutil.copy2("python/gumath/%s" % LIBSHARED, LIBGUMATHDIR)
     make_symlinks()
