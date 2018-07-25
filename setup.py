@@ -72,13 +72,13 @@ elif sys.argv[1] == "develop":
     copy_tests()
 
 elif sys.argv[1] == "test":
-    os.chdir("python")
-    module_path = ".."
+    module_path = os.path.join(os.getcwd(), "python")
     python_path = os.getenv('PYTHONPATH')
     path = module_path + ':' + python_path if python_path else module_path
     env = os.environ.copy()
     env['PYTHONPATH'] = path
 
+    os.chdir("python")
     ret = subprocess.call([sys.executable, "test/test_ndtypes.py", "--long"], env=env)
     if ret != 0:
         sys.exit(ret)
@@ -91,8 +91,7 @@ elif sys.argv[1] == "test":
     sys.exit(ret)
 
 elif sys.argv[1] == "doctest":
-    os.chdir("doc")
-    module_path = "../python"
+    module_path = os.path.join(os.getcwd(), "python")
     python_path = os.getenv('PYTHONPATH')
     path = module_path + ':' + python_path if python_path else module_path
     env = os.environ.copy()
@@ -100,6 +99,8 @@ elif sys.argv[1] == "doctest":
 
     cmd = [sys.executable, "-m", "sphinx.cmd.build",
            "-b", "doctest", "-d", "build/doctrees", ".", "build/html"]
+
+    os.chdir("doc")
     ret = subprocess.call(cmd, env=env)
     sys.exit(ret)
 
