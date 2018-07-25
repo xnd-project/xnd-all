@@ -37,6 +37,13 @@ import subprocess
 from shutil import copy2
 from glob import glob
 
+try:
+    import sphinx.cmd
+    SPHINX_BUILD = "sphinx.cmd.build"
+except:
+    SPHINX_BUILD = "sphinx"
+
+
 def err_exit():
     sys.stderr.write(
         "setup.py: usage: python3 setup.py [install, develop, test, doctest]\n\n")
@@ -97,7 +104,7 @@ elif sys.argv[1] == "doctest":
     env = os.environ.copy()
     env['PYTHONPATH'] = path
 
-    cmd = [sys.executable, "-m", "sphinx.cmd.build",
+    cmd = [sys.executable, "-m", SPHINX_BUILD,
            "-b", "doctest", "-d", "build/doctrees", ".", "build/html"]
 
     os.chdir("doc")
