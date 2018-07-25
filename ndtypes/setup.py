@@ -44,6 +44,12 @@ import platform
 import subprocess
 import shutil
 
+try:
+    import sphinx.cmd
+    SPHINX_BUILD = "sphinx.cmd.build"
+except:
+    SPHINX_BUILD = "sphinx"
+
 
 DESCRIPTION =  """\
 Dynamic types for data description and in-memory computations.\
@@ -161,12 +167,15 @@ elif len(sys.argv) == 2:
         ret = subprocess.call([sys.executable, "python/test_ndtypes.py", "--long"], env=env)
         sys.exit(ret)
     elif sys.argv[1] == 'doctest':
+        os.chdir("doc")
         module_path = '../python'
         python_path = os.getenv('PYTHONPATH')
         path = module_path + ':' + python_path if python_path else module_path
         env = os.environ.copy()
         env['PYTHONPATH'] = path
-        ret = subprocess.call(["make", "doctest"], cwd='doc', env=env)
+        cmd = [sys.executable, "-m", SPHINX_BUILD,
+               "-b", "doctest", "-d", "build/doctrees", ".", "build/html"]
+        ret = subprocess.call(cmd, env=env)
         sys.exit(ret)
     elif sys.argv[1] == 'clean':
         shutil.rmtree("build", ignore_errors=True)
