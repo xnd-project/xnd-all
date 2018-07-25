@@ -39,7 +39,7 @@ from glob import glob
 
 def err_exit():
     sys.stderr.write(
-        "setup.py: usage: python3 setup.py [install, develop, test]\n\n")
+        "setup.py: usage: python3 setup.py [install, develop, test, doctest]\n\n")
     sys.exit(1)
 
 def copy_tests():
