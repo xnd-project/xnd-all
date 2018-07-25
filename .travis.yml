@@ -30,6 +30,22 @@ matrix:
         - python3 setup.py install
         - python3 setup.py test
 
+    - compiler: gcc
+      before_script:
+        - sudo apt-get -qq update
+        - sudo apt-get install -y python3-sphinx
+      script:
+        - python3 setup.py develop
+        - python3 setup.py doctest
+
+    - compiler: gcc
+      before_script:
+        - sudo apt-get -qq update
+        - sudo apt-get install -y python3-sphinx
+      script:
+        - python3 setup.py install
+        - python3 setup.py doctest
+
     - language: objective-c
       os: osx
       compiler: clang
