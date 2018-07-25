@@ -19,8 +19,8 @@ Naturally the C extensions could be built against system-installed
 libraries, but that has its own set of problems.
 
 
-Install all libraries into $PWD/build
-=====================================
+Unix: install all libraries into $PWD/build
+===========================================
 
 ./configure
 make install
@@ -30,8 +30,8 @@ make check
 make memcheck
 
 
-Install all libraries into /usr/local
-=====================================
+Unix: install all libraries into /usr/local
+===========================================
 
 ./configure --prefix=/usr/local
 make install
@@ -41,15 +41,15 @@ make check
 make memcheck
 
 
-Install all Python modules into $PWD/python
-===========================================
+Unix/Windows: install all Python modules into $PWD/python
+=========================================================
 
 python3 setup.py develop
 python3 setup.py test
 
 
-Install all Python modules into site-packages
-=============================================
+Unix/Windows: install all Python modules into site-packages
+===========================================================
 
 python3 setup.py install
 python3 setup.py test
