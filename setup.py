@@ -73,9 +73,9 @@ elif sys.argv[1] == "develop":
 
 elif sys.argv[1] == "test":
     os.chdir("python")
+    module_path = ".."
     python_path = os.getenv('PYTHONPATH')
-    cwd = os.getcwd()
-    path = cwd + ':' + python_path if python_path else cwd
+    path = module_path + ':' + python_path if python_path else module_path
     env = os.environ.copy()
     env['PYTHONPATH'] = path
 
@@ -88,6 +88,19 @@ elif sys.argv[1] == "test":
         sys.exit(ret)
 
     ret = subprocess.call([sys.executable, "test/test_gumath.py"], env=env)
+    sys.exit(ret)
+
+elif sys.argv[1] == "doctest":
+    os.chdir("doc")
+    module_path = "../python"
+    python_path = os.getenv('PYTHONPATH')
+    path = module_path + ':' + python_path if python_path else module_path
+    env = os.environ.copy()
+    env['PYTHONPATH'] = path
+
+    cmd = [sys.executable, "-m", "sphinx.cmd.build",
+           "-b", "doctest", "-d", "build/doctrees", ".", "build/html"]
+    ret = subprocess.call(cmd, env=env)
     sys.exit(ret)
 
 else:

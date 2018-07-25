@@ -60,6 +60,7 @@ distclean: FORCE
 	- cd gumath && $(MAKE) distclean
 	- cd python && rm -rf ndtypes xnd gumath __pycache__ *.egg-info
 	- cd python/test && rm -rf *.py __pycache__ *.egg-info
+	- cd doc && rm -rf build
 	- rm -rf config.log build
 
 FORCE:
