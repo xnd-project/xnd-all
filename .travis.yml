@@ -14,6 +14,7 @@ matrix:
 
     - compiler: clang
       before_script:
+        - sudo apt-get -qq update
         - sudo apt-get install -y valgrind
       script:
         - ./configure
@@ -21,11 +22,15 @@ matrix:
         - make memcheck
 
     - compiler: gcc
+        - sudo apt-get -qq update
+        - sudo apt-get install -y python3-numpy
       script:
         - python3 setup.py develop
         - python3 setup.py test
 
     - compiler: gcc
+        - sudo apt-get -qq update
+        - sudo apt-get install -y python3-numpy
       script:
         - python3 setup.py install
         - python3 setup.py test
@@ -63,8 +68,21 @@ matrix:
       compiler: clang
       before_install:
         - brew install python3
+        - brew install numpy --with-python3
       before_script:
         - export CC=clang
       script:
         - python3 setup.py develop
+        - python3 setup.py test
+
+    - language: objective-c
+      os: osx
+      compiler: clang
+      before_install:
+        - brew install python3
+        - brew install numpy --with-python3
+      before_script:
+        - export CC=clang
+      script:
+        - python3 setup.py install
         - python3 setup.py test
