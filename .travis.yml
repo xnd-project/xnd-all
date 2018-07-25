@@ -23,32 +23,28 @@ matrix:
 
     - compiler: gcc
       before_script:
-        - sudo apt-get -qq update
-        - sudo apt-get install -y python3-numpy
+        - python3 -m pip install numpy
       script:
         - python3 setup.py develop
         - python3 setup.py test
 
     - compiler: gcc
       before_script:
-        - sudo apt-get -qq update
-        - sudo apt-get install -y python3-numpy
+        - python3 -m pip install numpy
       script:
         - python3 setup.py install
         - python3 setup.py test
 
     - compiler: gcc
       before_script:
-        - sudo apt-get -qq update
-        - sudo apt-get install -y python3-sphinx
+        - python3 -m pip install sphinx
       script:
         - python3 setup.py develop
         - python3 setup.py doctest
 
     - compiler: gcc
       before_script:
-        - sudo apt-get -qq update
-        - sudo apt-get install -y python3-sphinx
+        - python3 -m pip install sphinx
       script:
         - python3 setup.py install
         - python3 setup.py doctest
@@ -70,7 +66,6 @@ matrix:
       compiler: clang
       before_install:
         - brew install python3
-        - brew install numpy --with-python3
       before_script:
         - export CC=clang
       script:
@@ -82,7 +77,6 @@ matrix:
       compiler: clang
       before_install:
         - brew install python3
-        - brew install numpy --with-python3
       before_script:
         - export CC=clang
       script:
