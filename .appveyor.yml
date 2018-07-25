@@ -20,6 +20,7 @@ before_build:
   "\"C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\vcvarsall.bat\" %PLATFORM%"
 
 build_script:
+  - "%PYTHON%\\python.exe -m pip install numpy"
   - git clone https://github.com/plures/xnd-all.git
   - cd xnd-all
   - "%PYTHON%\\python.exe setup.py develop"
