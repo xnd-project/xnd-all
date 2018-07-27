@@ -31,4 +31,4 @@ build_script:
   - conda build .conda/libgumath
   - conda build .conda/gumath
   - ps: $env:LIBGUMATH = (conda build --output .conda/libgumath)
-  - ps: $env:XND = (conda build --output .conda/gumath)
+  - ps: $env:GUMATH = (conda build --output .conda/gumath)
