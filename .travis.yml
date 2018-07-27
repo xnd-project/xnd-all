@@ -7,46 +7,37 @@ python:
 matrix:
   include:
     - compiler: gcc
+      before_script:
+        - python3 -m pip install numpy sphinx
       script:
         - ./configure
         - make install
         - make check
+        - git clean -xdf
+        - python3 setup.py develop
+        - python3 setup.py test
+        - python3 setup.py doctest
+        - git clean -xdf
+        - python3 setup.py install
+        - python3 setup.py test
+        - python3 setup.py doctest
 
     - compiler: clang
       before_script:
         - sudo apt-get -qq update
         - sudo apt-get install -y valgrind
+        - python3 -m pip install numpy sphinx
       script:
         - ./configure
         - make install
         - make memcheck
-
-    - compiler: gcc
-      before_script:
-        - python3 -m pip install numpy
-      script:
+        - git clean -xdf
         - python3 setup.py develop
         - python3 setup.py test
-
-    - compiler: gcc
-      before_script:
-        - python3 -m pip install numpy
-      script:
-        - python3 setup.py install
-        - python3 setup.py test
-
-    - compiler: gcc
-      before_script:
-        - python3 -m pip install sphinx
-      script:
-        - python3 setup.py develop
         - python3 setup.py doctest
-
-    - compiler: gcc
-      before_script:
-        - python3 -m pip install sphinx
-      script:
+        - git clean -xdf
         - python3 setup.py install
+        - python3 setup.py test
         - python3 setup.py doctest
 
     - language: objective-c
@@ -60,26 +51,10 @@ matrix:
         - ./configure
         - make install
         - make check
-
-    - language: objective-c
-      os: osx
-      compiler: clang
-      before_install:
-        - brew install python3
-      before_script:
-        - export CC=clang
-      script:
+        - git clean -xdf
         - python3 setup.py develop
         - python3 setup.py test
-
-    - language: objective-c
-      os: osx
-      compiler: clang
-      before_install:
-        - brew install python3
-      before_script:
-        - export CC=clang
-      script:
+        - git clean -xdf
         - python3 setup.py install
         - python3 setup.py test
 
