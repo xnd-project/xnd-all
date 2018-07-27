@@ -78,6 +78,12 @@ matrix:
         - export XND=`conda build --output build/xnd/.conda/xnd`
         - export LIBGUMATH=`conda build --output build/gumath/.conda/libgumath`
         - export GUMATH=`conda build --output build/gumath/.conda/gumath`
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBNDTYPES --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $NDTYPES --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBXND --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $XND --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBGUMATH --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $GUMATH --user xnd --label dev; fi
 
     - language: objective-c
       os: osx
@@ -102,3 +108,13 @@ matrix:
         - export XND=`conda build --output build/xnd/.conda/xnd`
         - export LIBGUMATH=`conda build --output build/gumath/.conda/libgumath`
         - export GUMATH=`conda build --output build/gumath/.conda/gumath`
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBNDTYPES --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $NDTYPES --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBXND --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $XND --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBGUMATH --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $GUMATH --user xnd --label dev; fi
+
+env:
+  global:
+    - secure: "t8pu5rMxKywwSUKJULFYIIGi0y1MqZ7kilpUE8jyuxQz26DtKCQok1FosgEOTAwM3wsERMQTGjxIRysRm5cYrt4V3hHe/qtMkLV8KrNtkMX31/iJhix+KyE2x1pk3cUIXiGE64qubzlcPakMIJcOnx9a9FWKaKeopiLx05YAG303j2SxqJM6Js4cZYoZlYKbDHLkEyyTr8oE5ttR/L3rsHvzQxWhbOlieIKIj9lz1tusecy86o6S7QQn7wIqxwQ58QPL7vW4oU3TO9pynG5ePwJ7CZAc/KW/n42i1ufk4cnyF5Cdk6AWhmtdxvHn916uDFuz42Wbo6ks/TBLu2EKtOM+z5es1/GEMOI3IKdbhu66R9XjLasrtlZwLvYi5/yPKlov2QFn5Q5OhW9cKUhO34ZF4/3AjntW/fXz2VqmzTR8EZQ/nzfeMr0fqzTj2cHOk2/Rv4ev4v3GK42tkqfHMUQe4VI0rYCp839BUqqoVjsb9/gB7AGT4qkKQYI/UBpYG0PfsBKli3m2ujaW1nnkVMK5ETMXxa0e9IdrAa5yV4nkJ6XuUdoh3uIftMQ+P5/xi4GRk3iHzoOmU+u+K0YrOTgiUJlsFJm/wAg5XapqsSL5PtF7q0msrxw/ZJiFMeOxZ7qOml8W04WWUrbdpQ2Ph2tbBs/iTAKxxg10P0857Fs="
