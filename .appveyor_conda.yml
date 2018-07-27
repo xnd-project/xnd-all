@@ -14,9 +14,9 @@ build_script:
   - conda install --yes anaconda-client
   - cd scripts
   - conda-install.bat
-  - ps: $env:LIBNDTYPES = (conda build --output ndtypes\.conda\libndtypes)
-  - ps: $env:NDTYPES = (conda build --output ndtypes\.conda\ndtypes)
-  - ps: $env:LIBXND = (conda build --output xnd\.conda\libxnd)
-  - ps: $env:XND = (conda build --output xnd\.conda\xnd)
-  - ps: $env:LIBGUMATH = (conda build --output gumath\.conda\libgumath)
-  - ps: $env:XND = (conda build --output gumath\.conda\gumath)
+  - ps: $env:LIBNDTYPES = (conda build --output build\ndtypes\.conda\libndtypes)
+  - ps: $env:NDTYPES = (conda build --output build\ndtypes\.conda\ndtypes)
+  - ps: $env:LIBXND = (conda build --output build\xnd\.conda\libxnd)
+  - ps: $env:XND = (conda build --output build\xnd\.conda\xnd)
+  - ps: $env:LIBGUMATH = (conda build --output build\gumath\.conda\libgumath)
+  - ps: $env:XND = (conda build --output build\gumath\.conda\gumath)
