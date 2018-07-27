@@ -19,4 +19,6 @@ conda build .conda\libgumath
 conda build .conda\gumath
 conda install --use-local --yes gumath
 
+cd ..\..\
+
 
