@@ -8,15 +8,27 @@ os: Visual Studio 2015
 build_script:
   - ps: Start-FileDownload "https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe" C:\Miniconda.exe
   - cmd: C:\Miniconda.exe /S /D=C:\Py
-  - cmd: set PATH=C:\Py;C:\Py\Scripts;C:\Py\Library\bin;%PATH%
-  - cmd: conda update --yes conda
-  - cmd: conda install --yes conda-build=3.3.0
-  - cmd: conda install --yes anaconda-client
-  - cmd: conda install --yes numpy
-  - cmd: cd scripts && conda-install.bat
-  - ps: $env:LIBNDTYPES = (conda build --output build\ndtypes\.conda\libndtypes)
-  - ps: $env:NDTYPES = (conda build --output build\ndtypes\.conda\ndtypes)
-  - ps: $env:LIBXND = (conda build --output build\xnd\.conda\libxnd)
-  - ps: $env:XND = (conda build --output build\xnd\.conda\xnd)
-  - ps: $env:LIBGUMATH = (conda build --output build\gumath\.conda\libgumath)
-  - ps: $env:XND = (conda build --output build\gumath\.conda\gumath)
+  - set PATH=C:\Py;C:\Py\Scripts;C:\Py\Library\bin;%PATH%
+  - conda update --yes conda
+  - conda install --yes conda-build=3.3.0
+  - conda install --yes anaconda-client
+  - conda install --yes numpy
+  - mkdir build && cd build
+  - git clone https://github.com/plures/ndtypes.git
+  - git clone https://github.com/plures/xnd.git
+  - git clone https://github.com/plures/gumath.git
+  - cd ndtypes
+  - conda build .conda/libndtypes
+  - conda build .conda/ndtypes
+  - ps: $env:LIBNDTYPES = (conda build --output .conda/libndtypes)
+  - ps: $env:NDTYPES = (conda build --output .conda/ndtypes)
+  - cd ..\xnd
+  - conda build .conda/libxnd
+  - conda build .conda/xnd
+  - ps: $env:LIBXND = (conda build --output .conda/libxnd)
+  - ps: $env:XND = (conda build --output .conda/xnd)
+  - cd ..\gumath
+  - conda build .conda/libgumath
+  - conda build .conda/gumath
+  - ps: $env:LIBGUMATH = (conda build --output .conda/libgumath)
+  - ps: $env:XND = (conda build --output .conda/gumath)
