@@ -82,3 +82,24 @@ matrix:
       script:
         - python3 setup.py install
         - python3 setup.py test
+
+    - compiler: conda
+      install:
+        - cd ..
+        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        - bash Miniconda3-latest-Linux-x86_64.sh -b
+        - export PATH=$HOME/miniconda3/bin:$PATH
+        - conda update --yes conda
+        - conda install --yes conda-build=3.3.0
+        - conda install --yes anaconda-client
+      script:
+        - cd xnd-all
+        - git fetch --unshallow
+        - cd scripts
+        - ./conda-install.sh
+        - export LIBNDTYPES=`conda build --output build/ndtypes/.conda/libndtypes`
+        - export NDTYPES=`conda build --output build/ndtypes/.conda/ndtypes`
+        - export LIBXND=`conda build --output build/xnd/.conda/libxnd`
+        - export XND=`conda build --output build/xnd/.conda/xnd`
+        - export LIBGUMATH=`conda build --output build/gumath/.conda/libgumath`
+        - export GUMATH=`conda build --output build/gumath/.conda/gumath`
