@@ -32,3 +32,15 @@ build_script:
   - conda build .conda/gumath
   - ps: $env:LIBGUMATH = (conda build --output .conda/libgumath)
   - ps: $env:GUMATH = (conda build --output .conda/gumath)
+
+on_success:
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBNDTYPES --user xnd --label dev "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:NDTYPES --user xnd --label dev "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBXND --user xnd --label dev "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:XND --user xnd --label dev "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBGUMATH --user xnd --label dev "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:GUMATH --user xnd --label dev "2>&1" }
+
+environment:
+  anaconda_token:
+    secure: wm8stzESCZdHA69qC+lv2E8iOw2UigZZsFNteB1GXyYXbq76FcpYMbiFIdpcloEN
