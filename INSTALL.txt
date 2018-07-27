@@ -53,3 +53,15 @@ Unix/Windows: install all Python modules into site-packages
 
 python3 setup.py install
 python3 setup.py test
+
+
+Unix: conda (requires network connection)
+=========================================
+
+cd scripts && ./conda-install.sh
+
+
+Windows: conda (requires network connection)
+============================================
+
+cd scripts && conda-install.bat
