@@ -9,8 +9,9 @@
 xnd
 ===
 
-xnd is a package for typing raw memory blocks using a close variant
-of the datashape type language.
+xnd is a package for general typed containers.  xnd relies on
+the `libndtypes <http://ndtypes.readthedocs.io>`_ library for
+typing and memory layout information.
 
 
 Libxnd
