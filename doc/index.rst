@@ -9,7 +9,7 @@
 xnd
 ===
 
-ndtypes is a package for typing raw memory blocks using a close variant
+xnd is a package for typing raw memory blocks using a close variant
 of the datashape type language.
 
 
@@ -34,6 +34,14 @@ Python bindings for libxnd.
    :maxdepth: 1
 
    xnd/index.rst
+
+
+gumath
+======
+
+gumath is a package for extensible dispatch of computational kernels that
+target xnd containers.  Kernels can be added at runtime, which allows the
+use of JIT compilers.
 
 
 Libgumath
