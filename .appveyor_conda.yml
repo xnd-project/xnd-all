@@ -42,12 +42,12 @@ build_script:
 
 
 on_success:
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and $env:UPLOAD_LIBNDTYPES) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBNDTYPES --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and $env:UPLOAD_NDTYPES) { cmd /C anaconda --token $env:anaconda_token upload $env:NDTYPES --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and $env:UPLOAD_LIBXND) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBXND --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and $env:UPLOAD_XND) { cmd /C anaconda --token $env:anaconda_token upload $env:XND --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and $env:UPLOAD_LIBGUMATH) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBGUMATH --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and $env:UPLOAD_GUMATH) { cmd /C anaconda --token $env:anaconda_token upload $env:GUMATH --user xnd --label dev "2>&1" }
+  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_LIBNDTYPES -eq 1)) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBNDTYPES --user xnd --label dev "2>&1" }
+  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_NDTYPES -eq 1)) { cmd /C anaconda --token $env:anaconda_token upload $env:NDTYPES --user xnd --label dev "2>&1" }
+  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_LIBXND -eq 1)) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBXND --user xnd --label dev "2>&1" }
+  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_XND -eq 1)) { cmd /C anaconda --token $env:anaconda_token upload $env:XND --user xnd --label dev "2>&1" }
+  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_LIBGUMATH -eq 1)) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBGUMATH --user xnd --label dev "2>&1" }
+  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_GUMATH -eq 1)) { cmd /C anaconda --token $env:anaconda_token upload $env:GUMATH --user xnd --label dev "2>&1" }
 
 environment:
   anaconda_token:
