@@ -33,12 +33,12 @@ build_script:
   - ps: $env:LIBGUMATH = (conda build --output .conda/libgumath)
   - ps: $env:GUMATH = (conda build --output .conda/gumath)
   - cd ..\..\scripts
-  - ps: $env:UPLOAD_LIBNDTYPES = (python3 check_upload.py libndtypes $env:LIBNDTYPES)
-  - ps: $env:UPLOAD_NDTYPES = (python3 check_upload.py ndtypes $env:NDTYPES)
-  - ps: $env:UPLOAD_LIBXND = (python3 check_upload.py libxnd $env:LIBXND)
-  - ps: $env:UPLOAD_XND = (python3 check_upload.py xnd $env:XND)
-  - ps: $env:UPLOAD_LIBGUMATH = (python3 check_upload.py libgumath $env:LIBGUMATH)
-  - ps: $env:UPLOAD_GUMATH = (python3 check_upload.py gumath $env:GUMATH)
+  - ps: $env:UPLOAD_LIBNDTYPES = (python.exe check_upload.py libndtypes $env:LIBNDTYPES)
+  - ps: $env:UPLOAD_NDTYPES = (python.exe check_upload.py ndtypes $env:NDTYPES)
+  - ps: $env:UPLOAD_LIBXND = (python.exe check_upload.py libxnd $env:LIBXND)
+  - ps: $env:UPLOAD_XND = (python.exe check_upload.py xnd $env:XND)
+  - ps: $env:UPLOAD_LIBGUMATH = (python.exe check_upload.py libgumath $env:LIBGUMATH)
+  - ps: $env:UPLOAD_GUMATH = (python.exe check_upload.py gumath $env:GUMATH)
 
 
 on_success:
