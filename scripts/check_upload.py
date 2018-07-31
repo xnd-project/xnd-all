@@ -33,7 +33,7 @@ except:
 
 try:
     d = json.loads(response)
-    remote_tarname = d[package_name][0]["fn"]
+    remote_tarname = d[package_name][-1]["fn"]
 except:
     sys.stdout.write("true\n")
     sys.exit(0)
