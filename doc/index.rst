@@ -1,7 +1,7 @@
 .. meta::
    :robots: index, follow
-   :description: libndtypes documentation
-   :keywords: libndtypes, ndtypes, libxnd, xnd, libgumath, gumath, C, Python, xndtools, array computing
+   :description: xnd documentation
+   :keywords: libxnd, xnd, libgumath, gumath, xndtools, C, Python, array computing
 
 .. sectionauthor:: Stefan Krah <skrah at bytereef.org>
 
@@ -9,31 +9,9 @@
 xnd
 ===
 
-ndtypes is a package for typing raw memory blocks using a close variant
-of the datashape type language.
-
-
-Libndtypes
-----------
-
-C library.
-
-.. toctree::
-   :maxdepth: 1
-
-   libndtypes/index.rst
-
-
-Ndtypes
--------
-
-Python bindings for libndtypes.
-
-
-.. toctree::
-   :maxdepth: 1
-
-   ndtypes/index.rst
+xnd is a package for general typed containers.  xnd relies on
+the `libndtypes <http://ndtypes.readthedocs.io>`_ library for
+typing and memory layout information.
 
 
 Libxnd
@@ -50,13 +28,21 @@ C library.
 Xnd
 ---
 
-Python bindings for libndtypes.
+Python bindings for libxnd.
 
 
 .. toctree::
    :maxdepth: 1
 
    xnd/index.rst
+
+
+gumath
+======
+
+gumath is a package for extensible dispatch of computational kernels that
+target xnd containers.  Kernels can be added at runtime, which allows the
+use of JIT compilers.
 
 
 Libgumath
@@ -73,7 +59,7 @@ C library.
 Gumath
 ------
 
-Python bindings for libndtypes.
+Python bindings for libgumath.
 
 
 .. toctree::
