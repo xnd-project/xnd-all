@@ -1,7 +1,7 @@
 .. meta::
    :robots: index, follow
    :description: xnd documentation
-   :keywords: libxnd, xnd, libgumath, gumath, C, Python, array computing
+   :keywords: libxnd, xnd, libgumath, gumath, xndtools, C, Python, array computing
 
 .. sectionauthor:: Stefan Krah <skrah at bytereef.org>
 
@@ -66,6 +66,18 @@ Python bindings for libgumath.
    :maxdepth: 1
 
    gumath/index.rst
+
+
+XndTools
+--------
+
+XndTools is a Python package containing development tools for the XND project.
+
+
+.. toctree::
+   :maxdepth: 1
+
+   xndtools/index.rst
 
 
 Releases
