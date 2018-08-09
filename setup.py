@@ -43,6 +43,7 @@ try:
 except:
     SPHINX_BUILD = "sphinx"
 
+py_xnd_libs = ("ndtypes", "xnd", "gumath", "xndtools")
 
 def err_exit():
     sys.stderr.write(
@@ -50,7 +51,7 @@ def err_exit():
     sys.exit(1)
 
 def copy_tests():
-    for lib in "ndtypes", "xnd", "gumath":
+    for lib in py_xnd_libs:
         pattern = os.path.join(lib, "python", "*.py")
         files = glob(pattern)
         dest = os.path.join("python", "test")
@@ -62,7 +63,7 @@ if len(sys.argv) != 2:
     err_exit()
 
 if sys.argv[1] == "install":
-    for lib in "ndtypes", "xnd", "gumath":
+    for lib in py_xnd_libs:
         os.chdir(lib)
         os.system('"%s" setup.py install' % sys.executable)
         os.chdir("..")
@@ -71,9 +72,12 @@ if sys.argv[1] == "install":
 
 elif sys.argv[1] == "develop":
     INSTALLDIR = os.path.join(os.getcwd(), "python")
-    for lib in "ndtypes", "xnd", "gumath":
+    for lib in py_xnd_libs:
         os.chdir(lib)
-        os.system('"%s" setup.py install --local=%s' % (sys.executable, INSTALLDIR))
+        if lib == "xndtools":
+            os.system('"%s" setup.py develop' % sys.executable)
+        else:
+            os.system('"%s" setup.py install --local=%s' % (sys.executable, INSTALLDIR))
         os.chdir("..")
 
     copy_tests()
@@ -95,6 +99,10 @@ elif sys.argv[1] == "test":
         sys.exit(ret)
 
     ret = subprocess.call([sys.executable, "test/test_gumath.py"], env=env)
+    if ret != 0:
+        sys.exit(ret)
+
+    ret = subprocess.call([sys.executable, "test/test_xndtools.py"], env=env)
     sys.exit(ret)
 
 elif sys.argv[1] == "doctest":
