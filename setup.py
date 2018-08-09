@@ -102,7 +102,7 @@ elif sys.argv[1] == "test":
     if ret != 0:
         sys.exit(ret)
 
-    ret = subprocess.call([sys.executable, "test/test_xndtools.py"], env=env)
+    ret = subprocess.call(["xnd_tools", "--help"], env=env)
     sys.exit(ret)
 
 elif sys.argv[1] == "doctest":
