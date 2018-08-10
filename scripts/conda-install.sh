@@ -28,6 +28,6 @@ conda build .conda/gumath || exit 1
 conda install --use-local --yes gumath || exit 1
 
 cd ../xndtools || exit 1
-conda build .conda/xndtools || exit 1
+conda build .conda || exit 1
 conda install --use-local --yes xndtools || exit 1
 

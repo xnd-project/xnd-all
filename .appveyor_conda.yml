@@ -35,7 +35,7 @@ build_script:
   - ps: $env:GUMATH = (conda build --output .conda/gumath)
   - cd ..\xndtools
   - conda build .conda/xndtools
-  - ps: $env:XNDTOOLS = (conda build --output .conda/xndtools)
+  - ps: $env:XNDTOOLS = (conda build --output .conda)
   - cd ..\..\scripts
   - ps: $env:UPLOAD_LIBNDTYPES = (python.exe check_upload.py libndtypes $env:LIBNDTYPES)
   - ps: $env:UPLOAD_NDTYPES = (python.exe check_upload.py ndtypes $env:NDTYPES)

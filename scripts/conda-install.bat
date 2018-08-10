@@ -21,7 +21,7 @@ conda build .conda\gumath
 conda install --use-local --yes gumath
 
 cd ..\xndtools
-conda build .conda\xndtools
+conda build .conda
 conda install --use-local --yes xndtools
 
 cd ..\..\
