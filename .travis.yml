@@ -117,7 +117,7 @@ matrix:
         - export XND=`conda build --output build/xnd/.conda/xnd`
         - export LIBGUMATH=`conda build --output build/gumath/.conda/libgumath`
         - export GUMATH=`conda build --output build/gumath/.conda/gumath`
-        - export XNDTOOLS=`conda build --output build/xndtools/.conda/xndtools`
+        - export XNDTOOLS=`conda build --output build/xndtools/.conda`
         - export UPLOAD_LIBNDTYPES=`python3 check_upload.py libndtypes $LIBNDTYPES`
         - export UPLOAD_NDTYPES=`python3 check_upload.py ndtypes $NDTYPES`
         - export UPLOAD_LIBXND=`python3 check_upload.py libxnd $LIBXND`
