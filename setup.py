@@ -52,7 +52,10 @@ def err_exit():
 
 def copy_tests():
     for lib in py_xnd_libs:
-        pattern = os.path.join(lib, "python", "*.py")
+        if lib == "xndtools":
+            pattern = os.path.join(lib, lib, "*.py")
+        else:
+            pattern = os.path.join(lib, "python", "*.py")
         files = glob(pattern)
         dest = os.path.join("python", "test")
         for f in files:
