@@ -53,7 +53,7 @@ def err_exit():
 def copy_tests():
     for lib in py_xnd_libs:
         if lib == "xndtools":
-            pattern = os.path.join(lib, lib, "*.py")
+            pattern = os.path.join(lib, "test", "*.py")
         else:
             pattern = os.path.join(lib, "python", "*.py")
         files = glob(pattern)
@@ -105,7 +105,7 @@ elif sys.argv[1] == "test":
     if ret != 0:
         sys.exit(ret)
 
-    ret = subprocess.call(["xnd_tools", "--help"], env=env)
+    ret = subprocess.call([sys.executable, "test/test_xndtools.py"], env=env)
     sys.exit(ret)
 
 elif sys.argv[1] == "doctest":
