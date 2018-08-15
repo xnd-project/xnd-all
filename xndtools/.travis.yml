@@ -1,0 +1,34 @@
+language: python
+python:
+  - "3.6"
+install:
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pip pytest mkl mkl-include mkl-rt numpy
+  - source activate test-environment
+  - export PREFIX=$CONDA_PREFIX
+  - gcc --version
+  - python --version
+  - pip --version
+  - pytest --version
+  - bash update_xnd.sh
+
+before_script:
+  - python setup.py develop
+  - cd xndlib && python setup.py develop && cd -
+
+script:
+  - pytest -v xndtools/
+  - cd xndlib/ && pytest -v xndlib/ --ignore xndlib/tests/test_example.py
+
+
