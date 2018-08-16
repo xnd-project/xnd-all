@@ -47,8 +47,8 @@ GitHub procedure is this (example ndtypes+xnd):
       c) Open a PR in xnd
 
  
-Subtree changes, the Unix way
------------------------------
+Subtree changes --- the Unix way
+--------------------------------
 
   1) Fork xnd-all into your own account.
 
