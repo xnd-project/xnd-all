@@ -34,6 +34,7 @@ import sys, unittest, argparse
 from math import isinf, isnan
 from ndtypes import ndt, typedef
 from xnd import xnd, XndEllipsis
+from xnd._xnd import _test_view_subscript, _test_view_new
 from xnd_support import *
 from xnd_randvalue import *
 from _testbuffer import ndarray, ND_WRITABLE
@@ -62,12 +63,12 @@ def check_buffer(x):
 class XndTestCase(unittest.TestCase):
 
     def assertStrictEqual(self, x, y):
-        self.assertTrue(x.strict_equal(y), msg="x: %s  y: %s" % (x, y))
-        self.assertEqual(x, y, msg="x: %s  y: %s" % (x, y))
+        self.assertTrue(x.strict_equal(y))
+        self.assertEqual(x, y)
 
     def assertNotStrictEqual(self, x, y):
-        self.assertFalse(x.strict_equal(y), msg="x: %s  y: %s" % (x, y))
-        self.assertNotEqual(x, y, msg="x: %s  y: %s" % (x, y))
+        self.assertFalse(x.strict_equal(y))
+        self.assertNotEqual(x, y)
 
 
 class TestModule(XndTestCase):
@@ -2844,7 +2845,23 @@ class TestSplit(XndTestCase):
                     except ValueError:
                         continue
                     b = xnd.split(x, n, max_outer=m)
-                    self.assertEqual(a, b, msg="%s  %s  %s" % (x, n, m))
+                    self.assertEqual(a, b)
+
+
+class TestView(XndTestCase):
+
+    def test_view_subscript(self):
+        x = xnd([[1,2,3], [4,5,6]])
+        y = _test_view_subscript(x, key=(0, 1))
+        self.assertEqual(y, xnd(2))
+
+        x = xnd([[1,2,3], [4,5,6]])
+        y = _test_view_subscript(x, key=(1, slice(None, None, -1)))
+        self.assertEqual(y, xnd([6,5,4]))
+
+    def test_view_new(self):
+        x = _test_view_new()
+        self.assertEqual(x, xnd([1.1, 2.2, 3.3]))
 
 
 class TestSpec(XndTestCase):
@@ -3099,6 +3116,7 @@ ALL_TESTS = [
   TestRepr,
   TestBuffer,
   TestSplit,
+  TestView,
   LongIndexSliceTest,
 ]
 

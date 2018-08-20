@@ -38,8 +38,24 @@
 #include "pyxnd.h"
 #include "gumath.h"
 
+#ifndef _MSC_VER
+  #include "config.h"
+#endif
+
 #define GUMATH_MODULE
 #include "pygumath.h"
+
+#ifdef _MSC_VER
+  #ifndef UNUSED
+    #define UNUSED
+  #endif
+#else
+  #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+    #define UNUSED __attribute__((unused))
+  #else
+    #define UNUSED
+  #endif
+#endif
 
 
 /* libxnd.so is not linked without at least one xnd symbol. The -no-as-needed
@@ -56,6 +72,9 @@ static gm_tbl_t *table = NULL;
 
 /* Xnd type */
 static PyTypeObject *xnd = NULL;
+
+/* Maximum number of threads */
+static int64_t max_threads = 1;
 
 
 /****************************************************************************/
@@ -180,10 +199,18 @@ gufunc_call(GufuncObject *self, PyObject *args, PyObject *kwds)
          }
     }
 
+#ifdef HAVE_PTHREAD_H
+    if (gm_apply_thread(&kernel, stack, spec.outer_dims, spec.flags,
+        max_threads, &ctx) < 0) {
+        clear_objects(result, spec.nout);
+        return seterr(&ctx);
+    }
+#else
     if (gm_apply(&kernel, stack, spec.outer_dims, &ctx) < 0) {
         clear_objects(result, spec.nout);
         return seterr(&ctx);
     }
+#endif
 
     for (i = 0; i < spec.nout; i++) {
         if (ndt_is_abstract(spec.out[i])) {
@@ -361,7 +388,10 @@ unsafe_add_kernel(PyObject *m GM_UNUSED, PyObject *args, PyObject *kwds)
     k.name = name;
     k.sig = sig;
 
-    if (strcmp(tag, "C") == 0) {
+    if (strcmp(tag, "Opt") == 0) {
+        k.Opt = p;
+    }
+    else if (strcmp(tag, "C") == 0) {
         k.C = p;
     }
     else if (strcmp(tag, "Fortran") == 0) {
@@ -375,7 +405,7 @@ unsafe_add_kernel(PyObject *m GM_UNUSED, PyObject *args, PyObject *kwds)
     }
     else {
         PyErr_SetString(PyExc_ValueError,
-            "tag must be 'C', 'Fortran', 'Xnd' or 'Strided'");
+            "tag must be 'Opt', 'C', 'Fortran', 'Xnd' or 'Strided'");
         return NULL;
     }
 
@@ -391,10 +421,78 @@ unsafe_add_kernel(PyObject *m GM_UNUSED, PyObject *args, PyObject *kwds)
     return gufunc_new(table, f->name);
 }
 
+static void
+init_max_threads(void)
+{
+    PyObject *os = NULL;
+    PyObject *n = NULL;
+    int64_t i64;
+
+    os = PyImport_ImportModule("os");
+    if (os == NULL) {
+        goto error;
+    }
+
+    n = PyObject_CallMethod(os, "cpu_count", "()");
+    if (n == NULL) {
+        goto error;
+    }
+
+    i64 = PyLong_AsLongLong(n);
+    if (i64 < 1) {
+        goto error;
+    }
+
+    max_threads = i64;
+
+out:
+    Py_XDECREF(os);
+    Py_XDECREF(n);
+    return;
+
+error:
+    if (PyErr_Occurred()) {
+        PyErr_Clear();
+    }
+    PyErr_WarnEx(PyExc_RuntimeWarning,
+        "could not get cpu count: using max_threads==1", 1);
+    goto out;
+}
+
+static PyObject *
+get_max_threads(PyObject *m UNUSED, PyObject *args UNUSED)
+{
+    return PyLong_FromLongLong(max_threads);
+}
+
+static PyObject *
+set_max_threads(PyObject *m UNUSED, PyObject *obj)
+{
+    int64_t n;
+
+    n = PyLong_AsLongLong(obj);
+    if (n == -1 && PyErr_Occurred()) {
+        return NULL;
+    }
+
+    if (n <= 0) {
+        PyErr_SetString(PyExc_ValueError,
+            "max_threads must be greater than 0");
+        return NULL;
+    }
+
+    max_threads = n;
+
+    Py_RETURN_NONE;
+}
+
+
 static PyMethodDef gumath_methods [] =
 {
   /* Methods */
   { "unsafe_add_kernel", (PyCFunction)unsafe_add_kernel, METH_VARARGS|METH_KEYWORDS, NULL },
+  { "get_max_threads", (PyCFunction)get_max_threads, METH_NOARGS, NULL },
+  { "set_max_threads", (PyCFunction)set_max_threads, METH_O, NULL },
   { NULL, NULL, 1 }
 };
 
@@ -419,7 +517,6 @@ PyInit__gumath(void)
     PyObject *m = NULL;
     static PyObject *capsule = NULL;
     static int initialized = 0;
-    PyObject *obj = NULL;
 
     if (!initialized) {
        dummy = &xnd_error;
@@ -443,6 +540,8 @@ PyInit__gumath(void)
            return seterr(&ctx);
        }
 
+       init_max_threads();
+
        initialized = 1;
     }
 
@@ -450,12 +549,7 @@ PyInit__gumath(void)
         return NULL;
     }
 
-    obj = PyImport_ImportModule("xnd");
-    if (obj == NULL) {
-        return NULL;
-    }
-    xnd = (PyTypeObject *)PyObject_GetAttrString(obj, "xnd");
-    Py_CLEAR(obj);
+    xnd = Xnd_GetType();
     if (xnd == NULL) {
         goto error;
     }

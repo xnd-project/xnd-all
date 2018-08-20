@@ -1,0 +1,59 @@
+
+xnd-all is a meta package that includes the following upstream packages
+as git-subtrees:
+
+  - https://github.com/plures/ndtypes
+  - https://github.com/plures/xnd
+  - https://github.com/plures/gumath
+  - https://github.com/plures/xndtools
+
+
+xnd-all facilitates installing and testing all individual libraries with a
+single build command.
+
+
+The subtrees are updated when the packages are in a consistent state, usually
+by @skrah for {ndtypes, xnd, gumath} and by @pearu for {xndtools}.
+
+
+Preferably, pull requests should be opened for the respective upstream packages.
+
+
+Working inside xnd-all
+======================
+
+Subtree changes --- the official Github Procedure
+-------------------------------------------------
+
+If you want to work on several libraries together in xnd-all, the official
+GitHub procedure is this (example ndtypes+xnd):
+
+  1) Fork xnd-all into your own account.
+
+  2) Fork ndtypes and xnd into your own account.
+
+  3) Do NOT update the subtrees in xnd-all. If your patch relies on upstream
+     changes that haven't been merged into the subtrees, open an issue and
+     reference @skrah or @pearu (see above).
+
+  4) In your xnd-all fork, make changes to ndtypes+xnd and commit.
+
+  5)  a) git subtree split --prefix=ndtypes --branch ndtypes
+      b) git push https://github.com/user/ndtypes.git ndtypes:the-issue-fix
+      c) Open a PR in ndtypes
+
+  6)  a) git subtree split --prefix=xnd --branch xnd
+      b) git push https://github.com/user/xnd.git xnd:the-issue-fix
+      c) Open a PR in xnd
+
+ 
+Subtree changes --- the Unix way
+--------------------------------
+
+  1) Fork xnd-all into your own account.
+
+  2) Do NOT update the subtrees in xnd-all (see above).
+
+  3) Make the changes and submit a PR to xnd-all. We'll download the PR as a
+     good old diff and apply the changes manually to the upstream libraries.
+     Naturally you will be credited in the commit messages.

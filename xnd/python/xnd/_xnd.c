@@ -1139,16 +1139,11 @@ mblock_init(xnd_t * const x, PyObject *v)
             "'Char' type semantics need to be defined");
         return -1;
 
-    case Module:
-        PyErr_SetString(PyExc_NotImplementedError,
-            "'Module' type not implemented");
-        return -1;
-
     /* NOT REACHED: intercepted by ndt_is_abstract(). */
+    case Module: case Function:
     case AnyKind: case SymbolicDim: case EllipsisDim: case Typevar:
     case ScalarKind: case SignedKind: case UnsignedKind: case FloatKind:
     case ComplexKind: case FixedStringKind: case FixedBytesKind:
-    case Function:
         PyErr_SetString(PyExc_RuntimeError, "unexpected abstract type");
         return -1;
     }
@@ -1740,16 +1735,11 @@ _pyxnd_value(const xnd_t * const x, const int64_t maxshape)
             "'Char' type semantics need to be defined");
         return NULL;
 
-    case Module:
-        PyErr_SetString(PyExc_NotImplementedError,
-            "'Module' type not implemented");
-        return NULL;
-
     /* NOT REACHED: intercepted by ndt_is_abstract(). */
+    case Module: case Function:
     case AnyKind: case SymbolicDim: case EllipsisDim: case Typevar:
     case ScalarKind: case SignedKind: case UnsignedKind: case FloatKind:
     case ComplexKind: case FixedStringKind: case FixedBytesKind:
-    case Function:
         PyErr_SetString(PyExc_RuntimeError, "unexpected abstract type");
         return NULL;
     }
@@ -1763,32 +1753,6 @@ _pyxnd_value(const xnd_t * const x, const int64_t maxshape)
 /******************************************************************************/
 /*                            Indexing and slicing                            */
 /******************************************************************************/
-
-static PyObject *
-pyxnd_view_copy_type(const XndObject *src, const xnd_t *x)
-{
-    XndObject *view;
-    PyObject *type;
-
-    type = Ndt_CopySubtree(src->type, x->type);
-    if (type == NULL) {
-        return NULL;
-    }
-
-    view = pyxnd_alloc(Py_TYPE(src));
-    if (view == NULL) {
-        Py_DECREF(type);
-        return NULL;
-    }
-
-    Py_INCREF(src->mblock);
-    view->mblock = src->mblock;
-    view->type = type;
-    view->xnd = *x;
-    view->xnd.type = CONST_NDT(type);
-
-    return (PyObject *)view;
-}
 
 static PyObject *
 pyxnd_view_move_type(const XndObject *src, xnd_t *x)
@@ -1977,31 +1941,11 @@ convert_key(xnd_index_t *indices, int *len, PyObject *key)
 }
 
 static PyObject *
-_pyxnd_subscript(const XndObject *self, const xnd_index_t *indices, int len,
-                 bool have_slice)
-{
-    NDT_STATIC_CONTEXT(ctx);
-
-    if (have_slice) {
-        xnd_t x = xnd_multikey(&self->xnd, indices, len, &ctx);
-        if (x.ptr == NULL) {
-            return seterr(&ctx);
-        }
-        return pyxnd_view_move_type(self, &x);
-    }
-    else {
-        const xnd_t x = xnd_subtree(&self->xnd, indices, len, &ctx);
-        if (x.ptr == NULL) {
-            return seterr(&ctx);
-        }
-        return pyxnd_view_copy_type(self, &x);
-    }
-}
-
-static PyObject *
 pyxnd_subscript(XndObject *self, PyObject *key)
 {
+    NDT_STATIC_CONTEXT(ctx);
     xnd_index_t indices[NDT_MAX_DIM];
+    xnd_t x;
     int len;
     uint8_t flags;
 
@@ -2010,7 +1954,12 @@ pyxnd_subscript(XndObject *self, PyObject *key)
         return NULL;
     }
 
-    return _pyxnd_subscript(self, indices, len, flags & KEY_SLICE);
+    x = xnd_subscript(&self->xnd, indices, len, &ctx);
+    if (x.ptr == NULL) {
+        return seterr(&ctx);
+    }
+
+    return pyxnd_view_move_type(self, &x);
 }
 
 static void
@@ -2608,25 +2557,78 @@ Xnd_Subscript(const PyObject *self, const PyObject *key)
     return pyxnd_subscript((XndObject *)self, (PyObject *)key);
 }
 
+/*
+ * The 'xnd' argument provides a link to the owner of the memory and type
+ * resources.  'x' is a view (usually a subtree or a slice) that is based
+ * on 'xnd'. x->type belongs to 'x' and ownership is transferred to the
+ * result.
+ *
+ * In case of an error, x->type is deallocated.
+ */
 static PyObject *
-Xnd_Subscript2(const PyObject *self, const xnd_index_t *indices, int len)
+Xnd_FromXndMoveType(const PyObject *xnd, xnd_t *x)
 {
-    bool have_slice = false;
-
-    if (!Xnd_Check(self)) {
+    if (!Xnd_Check(xnd)) {
         PyErr_SetString(PyExc_TypeError,
-            "xnd subscript2 function called on non-xnd object");
+            "Xnd_FromXndMoveType() called on non-xnd object");
+        ndt_del((ndt_t *)x->type);
         return NULL;
     }
 
-    for (int i = 0; i < len; i++) {
-        if (indices[i].tag == Slice) {
-            have_slice = true;
-            break;
+    return pyxnd_view_move_type((const XndObject *)xnd, x);
+}
+
+/* Get the type from __init__.py with the pretty representation. */
+static PyTypeObject *
+Xnd_GetType(void)
+{
+    static PyTypeObject *type = NULL;
+
+    if (type == NULL) {
+        PyObject *obj = PyImport_ImportModule("xnd");
+        if (obj == NULL) {
+            return NULL;
+        }
+
+        type = (PyTypeObject *)PyObject_GetAttrString(obj, "xnd");
+        Py_CLEAR(obj);
+        if (type == NULL) {
+            return NULL;
         }
     }
 
-    return _pyxnd_subscript((const XndObject *)self, indices, len, have_slice);
+    Py_INCREF(type);
+    return type;
+}
+
+/*
+ * This function handles two common view cases:
+ *
+ *   a) A pristine view that owns everything, including new memory.
+ *   b) A view that owns its type after xnd_subscript().
+ */
+static PyObject *
+Xnd_FromXndView(xnd_view_t *x)
+{
+    if (x->obj == NULL && (x->flags&XND_OWN_ALL)==XND_OWN_ALL) {
+        PyTypeObject *type = Xnd_GetType();
+        if (type == NULL) {
+            xnd_view_clear(x);
+            return NULL;
+        }
+
+        return Xnd_FromXnd(type, &x->view);
+    }
+    else if (x->obj != NULL && (x->flags&XND_OWN_TYPE)) {
+        return Xnd_FromXndMoveType(x->obj, &x->view);
+    }
+    else {
+        PyErr_SetString(PyExc_TypeError,
+            "Xnd_FromXndView: unsupported combination of flags and "
+            "resource owner");
+        xnd_view_clear(x);
+        return NULL;
+    }
 }
 
 static PyObject *
@@ -2639,9 +2641,92 @@ init_api(void)
     xnd_api[Xnd_ViewMoveNdt_INDEX] = (void *)Xnd_ViewMoveNdt;
     xnd_api[Xnd_FromXnd_INDEX] = (void *)Xnd_FromXnd;
     xnd_api[Xnd_Subscript_INDEX] = (void *)Xnd_Subscript;
-    xnd_api[Xnd_Subscript2_INDEX] = (void *)Xnd_Subscript2;
+    xnd_api[Xnd_FromXndMoveType_INDEX] = (void *)Xnd_FromXndMoveType;
+    xnd_api[Xnd_FromXndView_INDEX] = (void *)Xnd_FromXndView;
+    xnd_api[Xnd_GetType_INDEX] = (void *)Xnd_GetType;
 
     return PyCapsule_New(xnd_api, "xnd._xnd._API", NULL);
+}
+
+
+/****************************************************************************/
+/*            Test functions (will be moved into a separate module)         */
+/****************************************************************************/
+
+/* Test the xnd_view_t API. */
+static PyObject *
+_test_view_subscript(PyObject *module UNUSED, PyObject *args, PyObject *kwds)
+{
+    static char *kwlist[] = {"x", "key", NULL};
+    NDT_STATIC_CONTEXT(ctx);
+    PyObject *x = NULL;
+    PyObject *key = NULL;
+    xnd_index_t indices[NDT_MAX_DIM];
+    xnd_view_t v, u;
+    int len;
+    uint8_t flags;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist, &x, &key)) {
+        return NULL;
+    }
+
+    if (!Xnd_Check(x)) {
+        PyErr_SetString(PyExc_TypeError,
+            "_test_view expects an xnd argument");
+        return NULL;
+    }
+
+    flags = convert_key(indices, &len, key);
+    if (flags & KEY_ERROR) {
+        return NULL;
+    }
+
+    /* Fill in the view (this sets the resource owner). */
+    v = xnd_view_from_xnd(x, XND(x));
+
+    /* Subscript the view (this updates all resource flags). */
+    u = xnd_view_subscript(&v, indices, len, &ctx);
+    if (ndt_err_occurred(&ctx)) {
+        return seterr(&ctx);
+
+    }
+
+    return Xnd_FromXndView(&u);
+}
+
+static PyObject *
+_test_view_new(PyObject *module UNUSED, PyObject *args UNUSED)
+{
+    NDT_STATIC_CONTEXT(ctx);
+    xnd_view_t x = xnd_view_error;
+    double *d;
+    ndt_t *t;
+    char *ptr;
+
+    t = ndt_from_string("3 * float64", &ctx);
+    if (t == NULL) {
+        return seterr(&ctx);
+    }
+
+    ptr = ndt_aligned_calloc(8, 3 * sizeof(double));
+    if (ptr == NULL) {
+        ndt_del(t);
+        (void)ndt_memory_error(&ctx);
+        return seterr(&ctx);
+    }
+
+    d = (double *)ptr;
+    d[0] = 1.1;
+    d[1] = 2.2;
+    d[2] = 3.3;
+
+    x.flags = XND_OWN_ALL;
+    x.obj = NULL;
+    x.view.index = 0;
+    x.view.type = t;
+    x.view.ptr = ptr;
+
+    return Xnd_FromXndView(&x);
 }
 
 
@@ -2649,14 +2734,19 @@ init_api(void)
 /*                                  Module                                  */
 /****************************************************************************/
 
-
+static PyMethodDef _xnd_methods [] =
+{
+  { "_test_view_subscript", (PyCFunction)_test_view_subscript, METH_VARARGS|METH_KEYWORDS, NULL},
+  { "_test_view_new", (PyCFunction)_test_view_new, METH_NOARGS, NULL},
+  { NULL, NULL, 1, NULL }
+};
 
 static struct PyModuleDef xnd_module = {
     PyModuleDef_HEAD_INIT,        /* m_base */
     "_xnd",                       /* m_name */
     doc_module,                   /* m_doc */
     -1,                           /* m_size */
-    NULL,                         /* m_methods */
+    _xnd_methods,                 /* m_methods */
     NULL,                         /* m_slots */
     NULL,                         /* m_traverse */
     NULL,                         /* m_clear */
