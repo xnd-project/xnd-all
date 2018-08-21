@@ -79,7 +79,7 @@ def generate_kernel(config_file,
         if target_file is None:
             target_file = os.path.join(source_dir, '{module_name}-kernels.c'.format(**data))
         if isinstance(target_file, str):
-            print('generate_kernel: kernel sources are saved to {}'.format(target_file))
+            print('generate_kernel: target source file is {}'.format(target_file))
             target_file = open(target_file, 'w')
             own_target_file = True
         else:
@@ -91,6 +91,44 @@ def generate_kernel(config_file,
     return dict(config_file = config_file,
                 sources = [target_file.name] + data['sources'])
 
+def update_config_xnd(**config):
+    """ Update configuration variables for XND packages.
+    """
+    sys_include_dir = os.path.join(sys.prefix, 'include')
+    sys_lib_dir = os.path.join(sys.prefix, 'lib')
+    libraries = ['gumath', 'xnd', 'ndtypes']
+    include_dirs = config['include_dirs']
+    library_dirs = config['library_dirs']
+    for name in libraries:
+        try:
+            module =  __import__(name)
+        except ImportError as msg:
+            # Skipping for cases where one needs to generate the kernel sources only.
+            print(f'update_config_xnd: failed to import the required package `{name}`: {msg}. SKIPPING!')
+            continue
+        d = os.path.dirname(module.__file__)
+        d_files = ' '.join(map(os.path.basename, glob(os.path.join(d, '*.*'))))
+        print(f'found `{name}` package in `{d}` that contains:\n  {d_files}')
+
+        include_dir_candidates = (d, sys_include_dir)
+        library_dir_candidates = (d, sys_lib_dir)
+        
+        for header_name in [f'{name}', f'py{name}']:
+            for dh,dl in zip(include_dir_candidates, library_dir_candidates):
+                h = os.path.join(dh, f'{header_name}.h')
+                if os.path.isfile(h):
+                    if h not in include_dirs:
+                        include_dirs.append(dh)
+                        library_dirs.append(dl)
+                        break
+            else:
+                # In custom configuration user specifies include and library directories.
+                include_paths = ':'.join(include_dir_canditates)
+                print(f'WARNING:update_config_xnd: no header file `{header_name}.h` found in `{include_paths}`. Assuming custom configuration.')
+        
+        if name not in config['libraries']:
+            config['libraries'].append(name)
+
 def get_module_data(config_file):
     config = load_kernel_config(config_file)
     if config is None:
@@ -100,12 +138,15 @@ def get_module_data(config_file):
     reader = PrototypeReader()    
     current_module = None
 
-    site_dir = get_python_lib()
-    prefix_dir = sys.prefix
     xndtools_datadir = os.path.dirname(__file__)
-    libraries = ['gumath', 'xnd', 'ndtypes']
-    include_dirs = [os.path.join(site_dir, _m) for _m in libraries] + [xndtools_datadir]
-    library_dirs = [os.path.join(site_dir, _m) for _m in libraries]
+
+    include_dirs = []
+    library_dirs = []
+    libraries = []
+    update_config_xnd(include_dirs=include_dirs,
+                      library_dirs=library_dirs,
+                      libraries=libraries)    
+    include_dirs.append(xndtools_datadir)
     
     sources = list(glob(os.path.join(xndtools_datadir, '*.c')))
     kernels = []
