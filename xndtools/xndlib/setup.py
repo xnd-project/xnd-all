@@ -28,10 +28,9 @@ CONDA_PREFIX=os.environ['CONDA_PREFIX']
 MKLROOT = CONDA_PREFIX
 
 kernel_configuration_files = ['example-kernels.cfg',
-                              'test_scalar-kernels.cfg',
-                              'test_array-kernels.cfg',
                               'test_mixed-kernels.cfg',
-                              'mkl_vml-kernels.cfg'
+                              'mkl_vml-kernels.cfg',
+                              'mkl_blas-kernels.cfg',
 ][1:]
 
 ext_modules = []
@@ -45,7 +44,8 @@ for cfg in kernel_configuration_files:
     runtime_library_dirs = []
     
     if cfg.startswith('mkl_'):
-        libraries += ['mkl_intel_ilp64', 'mkl_sequential', 'mkl_core', #'mkl_rt',
+        libraries += ['mkl_intel_ilp64', 'mkl_sequential', 'mkl_core', 'mkl_rt',
+                      'mkl_avx2',
                       'pthread', 'm', 'dl']
         extra_compile_args += ['-DMKL_ILP64', '-m64']
         extra_link_args += ['-Wl,--no-as-needed']        
@@ -59,6 +59,7 @@ for cfg in kernel_configuration_files:
                                   target_file = None,
                                   kernels_source_file = None,
     ))
+    if m is None: continue
     include_dirs += m['include_dirs']
     sources = m['sources']
     depends = sources + [cfg] + [xndtools.__file__]
