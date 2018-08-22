@@ -63,9 +63,6 @@ def kernel_generator_test_modules():
     source_dir = temp_dir_path('lib', 'xndtools/kernel_generator/tests/')
     extensions = []
     for cfg in glob('xndtools/kernel_generator/tests/test_*-kernels.cfg'):
-        extra_compile_args = ["-Wextra", "-Wno-missing-field-initializers", "-std=c11"]
-        extra_link_args = []
-        runtime_library_dirs = []        
         m = generate_module(Namespace(config_file = cfg,
                                       target_language = 'python',
                                       package = 'xndtools.kernel_generator.tests',
@@ -76,13 +73,23 @@ def kernel_generator_test_modules():
         if not m['has_xnd']:
             print(f'WARNING: no XND packages found for {cfg}.')
             continue
+        libraries = m['libraries']
+        if sys.platform == "win32":
+            extra_compile_args = []
+            extra_link_args = []
+            runtime_library_dirs = []
+            libraries = [f'lib{lib}-0.2.0dev3.dll' for lib in libraries if lib in ['gumath','xnd','ndtypes']]
+        else:
+            extra_compile_args = ["-Wextra", "-Wno-missing-field-initializers", "-std=c11"]
+            extra_link_args = []
+            runtime_library_dirs = []
         ext = Extension (
             m['extname'],
             include_dirs = m['include_dirs'],
             library_dirs = m['library_dirs'],
             depends = m['sources']+[cfg],
             sources = m['sources'],
-            libraries = m['libraries'],
+            libraries = libraries,
             extra_compile_args = extra_compile_args,
             extra_link_args = extra_link_args,
             runtime_library_dirs = runtime_library_dirs
@@ -155,7 +162,8 @@ def setup_package():
         scripts=['scripts/xnd_tools', 'scripts/structinfo_generator'],
         cmdclass={'build_py': my_build_py},
         ext_modules = [ext for ext in ext_modules if ext is not None],
-     
+        setup_requires=['pytest-runner'],
+        tests_require=['pytest'],
     )
     
     try:
