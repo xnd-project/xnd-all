@@ -21,6 +21,8 @@ https://github.com/plures/xndtools
 xndtools was written by `Pearu Peterson <https://github.com/pearu>`_.
 
 
+:raw-html:`<br />`
+
 .. image:: https://travis-ci.org/plures/xnd-all.svg?branch=master
     :target: https://travis-ci.org/plures/xnd-all
 
