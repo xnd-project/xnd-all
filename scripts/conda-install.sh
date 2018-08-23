@@ -10,6 +10,7 @@ mkdir build && cd build || exit 1
 git clone https://github.com/plures/ndtypes.git || exit 1
 git clone https://github.com/plures/xnd.git || exit 1
 git clone https://github.com/plures/gumath.git || exit 1
+git clone https://github.com/plures/xndtools.git || exit 1
 
 cd ndtypes || exit 1
 conda build .conda/libndtypes || exit 1
@@ -26,4 +27,7 @@ conda build .conda/libgumath || exit 1
 conda build .conda/gumath || exit 1
 conda install --use-local --yes gumath || exit 1
 
+cd ../xndtools || exit 1
+conda build .conda || exit 1
+conda install --use-local --yes xndtools || exit 1
 
