@@ -21,5 +21,19 @@ https://github.com/plures/xndtools
 xndtools was written by `Pearu Peterson <https://github.com/pearu>`_.
 
 
+:raw-html:`<br />`
+
+.. image:: https://travis-ci.org/plures/xnd-all.svg?branch=master
+    :target: https://travis-ci.org/plures/xnd-all
+
+.. image:: https://ci.appveyor.com/api/projects/status/mv96l0tip8ncow7a?svg=true
+    :target: https://ci.appveyor.com/project/plures/xnd-all
+
+.. image:: https://ci.appveyor.com/api/projects/status/gbfgr2jv41v8sqqs?svg=true
+    :target: https://ci.appveyor.com/project/plures/xnd-all-8n91d
+
+:raw-html:`<br />`
+
+
 Funding for these projects initially came from `Anaconda Inc. <https://www.anaconda.com/>`_
 and now from `Quansight LLC <https://www.quansight.com/>`_.
