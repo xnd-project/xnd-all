@@ -58,10 +58,12 @@ distclean: FORCE
 	- cd ndtypes && $(MAKE) distclean
 	- cd xnd && $(MAKE) distclean
 	- cd gumath && $(MAKE) distclean
+	- cd xndtools && rm -rf temp record.txt
 	- cd python && rm -rf ndtypes xnd gumath __pycache__ *.egg-info
+	- cd python && rm -rf xndtools structinfo_generator xnd_tools
 	- cd python/test && rm -rf *.py __pycache__ *.egg-info
 	- cd scripts && rm -rf build
 	- cd doc && rm -rf build
-	- rm -rf config.log build
+	- rm -rf config.log build .pytest_cache
 
 FORCE:

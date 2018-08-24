@@ -43,7 +43,24 @@ try:
 except:
     SPHINX_BUILD = "sphinx"
 
-py_xnd_libs = ("ndtypes", "xnd", "gumath", "xndtools")
+
+XND_ALL = ["ndtypes", "xnd", "gumath", "xndtools"]
+
+LOCAL_SETUP_ARGS = """\
+--single-version-externally-managed --record record.txt \
+--install-base={path} --install-purelib={path} --install-platlib={path} \
+--install-scripts={path} --install-data={path} --install-headers={path} \
+"""
+
+if sys.platform == "darwin": # homebrew bug
+    LOCAL_SETUP_ARGS += " --prefix="
+
+module_path = os.path.join(os.getcwd(), "python")
+python_path = os.getenv('PYTHONPATH')
+path = module_path + ':' + python_path if python_path else module_path
+ENV = os.environ.copy()
+ENV['PYTHONPATH'] = path
+
 
 def err_exit():
     sys.stderr.write(
@@ -51,7 +68,7 @@ def err_exit():
     sys.exit(1)
 
 def copy_tests():
-    for lib in py_xnd_libs:
+    for lib in XND_ALL:
         if lib == "xndtools":
             pattern = os.path.join(lib, "test", "*.py")
         else:
@@ -66,7 +83,7 @@ if len(sys.argv) != 2:
     err_exit()
 
 if sys.argv[1] == "install":
-    for lib in py_xnd_libs:
+    for lib in XND_ALL:
         os.chdir(lib)
         os.system('"%s" setup.py install' % sys.executable)
         os.chdir("..")
@@ -74,38 +91,36 @@ if sys.argv[1] == "install":
     copy_tests()
 
 elif sys.argv[1] == "develop":
-    INSTALLDIR = os.path.join(os.getcwd(), "python")
-    for lib in py_xnd_libs:
+    installdir = os.path.join(os.getcwd(), "python")
+    for lib in XND_ALL:
         os.chdir(lib)
         if lib == "xndtools":
-            os.system('"%s" setup.py develop' % sys.executable)
+            args = LOCAL_SETUP_ARGS.format(path=installdir)
+            cmd = [sys.executable, "setup.py", "install"] + args.split()
+            ret = subprocess.call(cmd, env=ENV)
+            if ret != 0:
+                sys.exit(ret)
         else:
-            os.system('"%s" setup.py install --local=%s' % (sys.executable, INSTALLDIR))
+            os.system('"%s" setup.py install --local=%s' % (sys.executable, installdir))
         os.chdir("..")
 
     copy_tests()
 
 elif sys.argv[1] == "test":
-    module_path = os.path.join(os.getcwd(), "python")
-    python_path = os.getenv('PYTHONPATH')
-    path = module_path + ':' + python_path if python_path else module_path
-    env = os.environ.copy()
-    env['PYTHONPATH'] = path
-
     os.chdir("python")
-    ret = subprocess.call([sys.executable, "test/test_ndtypes.py", "--long"], env=env)
+    ret = subprocess.call([sys.executable, "test/test_ndtypes.py", "--long"], env=ENV)
     if ret != 0:
         sys.exit(ret)
 
-    ret = subprocess.call([sys.executable, "test/test_xnd.py", "--long"], env=env)
+    ret = subprocess.call([sys.executable, "test/test_xnd.py", "--long"], env=ENV)
     if ret != 0:
         sys.exit(ret)
 
-    ret = subprocess.call([sys.executable, "test/test_gumath.py"], env=env)
+    ret = subprocess.call([sys.executable, "test/test_gumath.py"], env=ENV)
     if ret != 0:
         sys.exit(ret)
 
-    ret = subprocess.call([sys.executable, "test/test_xndtools.py"], env=env)
+    ret = subprocess.call([sys.executable, "test/test_xndtools.py"], env=ENV)
     sys.exit(ret)
 
 elif sys.argv[1] == "doctest":
