@@ -79,20 +79,13 @@ matrix:
         - export LIBGUMATH=`conda build --output build/gumath/.conda/libgumath`
         - export GUMATH=`conda build --output build/gumath/.conda/gumath`
         - export XNDTOOLS=`conda build --output build/xndtools/.conda`
-        - export UPLOAD_LIBNDTYPES=`python check_upload.py libndtypes $LIBNDTYPES`
-        - export UPLOAD_NDTYPES=`python check_upload.py ndtypes $NDTYPES`
-        - export UPLOAD_LIBXND=`python check_upload.py libxnd $LIBXND`
-        - export UPLOAD_XND=`python check_upload.py xnd $XND`
-        - export UPLOAD_LIBGUMATH=`python check_upload.py libgumath $LIBGUMATH`
-        - export UPLOAD_GUMATH=`python check_upload.py gumath $GUMATH`
-        - export UPLOAD_XNDTOOLS=`python check_upload.py xndtools $XNDTOOLS`
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_LIBNDTYPES" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $LIBNDTYPES --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_NDTYPES" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $NDTYPES --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_LIBXND" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $LIBXND --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_XND" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $XND --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_LIBGUMATH" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $LIBGUMATH --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_GUMATH" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $GUMATH --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_XNDTOOLS" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $XNDTOOLS --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBNDTYPES --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $NDTYPES --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBXND --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $XND --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBGUMATH --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $GUMATH --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $XNDTOOLS --user xnd --label dev --skip-existing; fi
 
     - language: objective-c
       os: osx
@@ -118,20 +111,13 @@ matrix:
         - export LIBGUMATH=`conda build --output build/gumath/.conda/libgumath`
         - export GUMATH=`conda build --output build/gumath/.conda/gumath`
         - export XNDTOOLS=`conda build --output build/xndtools/.conda`
-        - export UPLOAD_LIBNDTYPES=`python check_upload.py libndtypes $LIBNDTYPES`
-        - export UPLOAD_NDTYPES=`python check_upload.py ndtypes $NDTYPES`
-        - export UPLOAD_LIBXND=`python check_upload.py libxnd $LIBXND`
-        - export UPLOAD_XND=`python check_upload.py xnd $XND`
-        - export UPLOAD_LIBGUMATH=`python check_upload.py libgumath $LIBGUMATH`
-        - export UPLOAD_GUMATH=`python check_upload.py gumath $GUMATH`
-        - export UPLOAD_XNDTOOLS=`python check_upload.py xndtools $XNDTOOLS`
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_LIBNDTYPES" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $LIBNDTYPES --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_NDTYPES" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $NDTYPES --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_LIBXND" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $LIBXND --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_XND" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $XND --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_LIBGUMATH" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $LIBGUMATH --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_GUMATH" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $GUMATH --user xnd --label dev; fi
-        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false" && test X"$UPLOAD_XNDTOOLS" = X"true"; then anaconda --token $ANACONDA_TOKEN upload $XNDTOOLS --user xnd --label dev; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBNDTYPES --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $NDTYPES --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBXND --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $XND --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBGUMATH --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $GUMATH --user xnd --label dev --skip-existing; fi
+        - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $XNDTOOLS --user xnd --label dev --skip-existing; fi
 
 env:
   global:

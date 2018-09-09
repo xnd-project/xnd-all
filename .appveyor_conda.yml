@@ -36,24 +36,15 @@ build_script:
   - cd ..\xndtools
   - conda build .conda
   - ps: $env:XNDTOOLS = (conda build --output .conda)
-  - cd ..\..\scripts
-  - ps: $env:UPLOAD_LIBNDTYPES = (python.exe check_upload.py libndtypes $env:LIBNDTYPES)
-  - ps: $env:UPLOAD_NDTYPES = (python.exe check_upload.py ndtypes $env:NDTYPES)
-  - ps: $env:UPLOAD_LIBXND = (python.exe check_upload.py libxnd $env:LIBXND)
-  - ps: $env:UPLOAD_XND = (python.exe check_upload.py xnd $env:XND)
-  - ps: $env:UPLOAD_LIBGUMATH = (python.exe check_upload.py libgumath $env:LIBGUMATH)
-  - ps: $env:UPLOAD_GUMATH = (python.exe check_upload.py gumath $env:GUMATH)
-  - ps: $env:UPLOAD_XNDTOOLS = (python.exe check_upload.py xndtools $env:XNDTOOLS)
-
 
 on_success:
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_LIBNDTYPES -eq "true")) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBNDTYPES --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_NDTYPES -eq "true")) { cmd /C anaconda --token $env:anaconda_token upload $env:NDTYPES --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_LIBXND -eq "true")) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBXND --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_XND -eq "true")) { cmd /C anaconda --token $env:anaconda_token upload $env:XND --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_LIBGUMATH -eq "true")) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBGUMATH --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_GUMATH -eq "true")) { cmd /C anaconda --token $env:anaconda_token upload $env:GUMATH --user xnd --label dev "2>&1" }
-  - ps: if((-not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and ($env:UPLOAD_XNDTOOLS -eq "true")) { cmd /C anaconda --token $env:anaconda_token upload $env:XNDTOOLS --user xnd --label dev "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBNDTYPES --user xnd --label dev --skip-existing "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:NDTYPES --user xnd --label dev --skip-existing "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBXND --user xnd --label dev --skip-existing "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:XND --user xnd --label dev --skip-existing "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:LIBGUMATH --user xnd --label dev --skip-existing "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:GUMATH --user xnd --label dev --skip-existing "2>&1" }
+  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { cmd /C anaconda --token $env:anaconda_token upload $env:XNDTOOLS --user xnd --label dev --skip-existing "2>&1" }
 
 environment:
   anaconda_token:
