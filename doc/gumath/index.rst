@@ -24,4 +24,3 @@ modules.
    :maxdepth: 1
 
    functions.rst
-   c-api.rst
