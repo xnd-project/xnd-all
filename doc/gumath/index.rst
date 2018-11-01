@@ -5,6 +5,7 @@
 
 .. sectionauthor:: Stefan Krah <skrah at bytereef.org>
 
+.. _gumath:
 
 gumath
 ------
