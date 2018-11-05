@@ -1,6 +1,6 @@
 .. meta::
    :robots: index, follow
-   :description: libxnd documentation
+   :description: XND Tutorials
    :keywords: xnd, gumath, ndtypes, numba, dask, example, tutorial
 
 .. sectionauthor:: Ryan Henning <ryan at rhobota.com>
