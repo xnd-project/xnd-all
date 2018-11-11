@@ -40,7 +40,7 @@
 extern int ndt_yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 57 "grammar.y" /* yacc.c:1909  */
+#line 56 "grammar.y" /* yacc.c:1909  */
 
   #include "ndtypes.h"
   #include "seq.h"
@@ -127,10 +127,11 @@ extern int ndt_yydebug;
 
 union YYSTYPE
 {
-#line 86 "grammar.y" /* yacc.c:1909  */
+#line 85 "grammar.y" /* yacc.c:1909  */
 
-    ndt_t *ndt;
+    const ndt_t *ndt;
     enum ndt tag;
+    enum ndt_alias alias;
     ndt_field_t *field;
     ndt_field_seq_t *field_seq;
     ndt_value_t *typed_value;
@@ -144,7 +145,7 @@ union YYSTYPE
     ndt_string_seq_t *string_seq;
     ndt_type_seq_t *type_seq;
 
-#line 148 "grammar.h" /* yacc.c:1909  */
+#line 149 "grammar.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -168,14 +169,14 @@ struct YYLTYPE
 
 
 
-int ndt_yyparse (yyscan_t scanner, ndt_t **ast, ndt_meta_t *meta, ndt_context_t *ctx);
+int ndt_yyparse (yyscan_t scanner, const ndt_t **ast, ndt_context_t *ctx);
 /* "%code provides" blocks.  */
-#line 66 "grammar.y" /* yacc.c:1909  */
+#line 65 "grammar.y" /* yacc.c:1909  */
 
   #define YY_DECL extern int ndt_yylexfunc(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner, ndt_context_t *ctx)
   extern int ndt_yylexfunc(YYSTYPE *, YYLTYPE *, yyscan_t, ndt_context_t *);
-  void yyerror(YYLTYPE *loc, yyscan_t scanner, ndt_t **ast, ndt_meta_t *meta, ndt_context_t *ctx, const char *msg);
+  void yyerror(YYLTYPE *loc, yyscan_t scanner, const ndt_t **ast, ndt_context_t *ctx, const char *msg);
 
-#line 180 "grammar.h" /* yacc.c:1909  */
+#line 181 "grammar.h" /* yacc.c:1909  */
 
 #endif /* !YY_NDT_YY_GRAMMAR_H_INCLUDED  */
