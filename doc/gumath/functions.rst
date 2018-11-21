@@ -44,7 +44,7 @@ On an array with a *float64* dtype, *log* works as expected.
    >>> fn.log(x)
    Traceback (most recent call last):
      File "<stdin>", line 1, in <module>
-   RuntimeError: invalid dtype
+   ValueError: invalid dtype
 
 This function call would require an implicit inexact conversion from *int64* to
 *float64*.  All builtin libgumath kernels only allow exact conversions, so the
