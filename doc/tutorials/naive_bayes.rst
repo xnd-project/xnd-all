@@ -26,6 +26,9 @@ code is intended to demonstrate where XND is headed (if the developers of
 XND agree with this vision). See the section at the bottom of this page
 which details the :ref:`nb_missing_features`.
 
+This serves as a string-processing example using XND. For a numeric-computation
+example of XND, see the next tutorial :ref:`neural_net_gpu_dask`.
+
 
 Reading the dataset
 -------------------
@@ -78,15 +81,17 @@ NIPS articles. See below:
 Preprocessing
 -------------
 
-The first computation step of our Naive Bayes pipeline will be to "preprocess"
-the text of each document. In the NLP-world, "preprocessing" commonly means to:
+The first computation step of our Naive Bayes pipeline will be to *preprocess*
+the text of each document. In the NLP-world, *preprocessing* commonly means to:
 
 1. Convert all the text to lower-case.
-2. Tokenize the text (in our case we will tokenize the text into individual words).
-3. Remove common words (such as "a", "an", "but", "and", "they" ... etc). These are usually called "stop words" by the NLP folks.
+2. Tokenize the text (in our case this means splitting the text into individual words).
+3. Remove common words (such as "a", "an", "but", "and", "they" ... etc). These are usually called *stop words* by the NLP folks.
 
-The following code these things for the ``demo_corpus``. We won't use a complete
-set of stop words, but we will use a few to show the overall goal.
+The following code does these things for the ``demo_corpus``. We don't use a complete
+set of stop words below, but we will use a few to show the strategy. The docstrings of each function
+below describe their purpose and usage. See the shell output at the bottom shows how to perform
+all three *preprocessing* steps in a pipelined/vectorized way with XND.
 
 .. code-block:: python
 
@@ -177,12 +182,12 @@ set of stop words, but we will use a few to show the overall goal.
         type='var * var * string')
 
 
-Naive Bayes Classifier
+Compute the Vocabulary
 ----------------------
 
-Let's create the "vocabulary", which is a set of all the words that appear in our corpus.
+The next step is to create the *vocabulary*, which is a set of **all** the words that appear in our corpus.
 
-This may not be a job for XND, but if it were, here is an idea for an interface for it.
+(This may not be a job suitable for XND, but if it were, what follows is an idea of an interface for it.)
 
 .. code-block:: python
 
@@ -210,20 +215,24 @@ This may not be a job for XND, but if it were, here is an idea for an interface 
      'world',
      "wouldn't",
      'you'}
-    >>> index_to_word = list(demo_vocab)
+    >>> index_to_word = sorted(demo_vocab)
     >>> word_to_index = {word: index for index, word in enumerate(index_to_word)}
 
 
-Now let's create a bag-of-words.
+Build the Bag-of-Words (BOW)
+----------------------------
+
+Now let's create a "bag of words". The idea behind the "bag of words" is that we can make the problem **much simpler** by viewing each document as merely an unordered collection ("bag") of tokens ("words"). This, of course, throws out *a ton* of important information (the order of the words contains a lot of information which is being thrown away), but it is nonetheless a commonly-used way to simplify the problem, and insights can still usually be drawn from the data.
+
+In the code below, we'll take our preprocessed XND container from above, and we'll convert it into a matrix. Each row *i* of the matrix represents one document. Each column *j* of the matrix represents one word in the vocabulary. The value of an element in the matrix represents how many times word *j* occurs in document *i*.
 
 .. code-block:: python
 
     def build_bow_vectorizer(word_to_index):
         """
-        Build a bag-of-words vectorizer. Using the word-to-index mapping given.
+        Build a bag-of-words vectorizer, using the word-to-index mapping given.
         The columns will be words (denoted by the mapping of `word_to_index`),
-        and the rows are documents. A value of one (1) in a cell denotes that
-        that row's document contains that column's word.
+        and the rows are documents.
         """
         N = len(word_to_index)
 
@@ -231,25 +240,61 @@ Now let's create a bag-of-words.
         def bow_vectorize(tokens, result):
             result[:] = 0
             for token in tokens:
-                result[word_to_index[token.value]] = 1
+                result[word_to_index[token.value]] += 1
             return vect
 
         return bow_vectorize
 
     >>> bow_vectorize = build_bow_vectorizer(word_to_index)
     >>> bow = bow_vectorize(demo_corpus_preprocessed)
+    >>>
     >>> bow
-    xnd([[0, 0, 0, 1, 0, 1, 0, 0, 0, ...],
+    xnd([[0, 0, 0, 0, 0, 0, 1, 0, 0, ...],
+         [0, 1, 1, 0, 0, 0, 0, 1, 0, ...],
+         [0, 0, 0, 2, 0, 0, 0, 0, 0, ...],
          [1, 0, 0, 0, 0, 0, 0, 0, 0, ...],
-         [0, 0, 0, 0, 0, 0, 1, 1, 1, ...],
-         [0, 0, 0, 0, 1, 0, 0, 0, 0, ...],
-         [0, 0, 1, 0, 0, 0, 0, 0, 0, ...],
-         [0, 1, 0, 0, 0, 0, 0, 0, 0, ...],
+         [0, 0, 0, 0, 1, 1, 0, 0, 2, ...],
+         [0, 0, 0, 0, 0, 0, 0, 0, 0, ...],
          [0, 0, 0, 0, 0, 0, 0, 0, 0, ...]],
         type='7 * 33 * int16')
+    >>>
+    >>> demo_corpus_preprocessed[2]
+    xnd(["i'm", 'best', 'there', 'what', 'what', 'best', "isn't", 'very', 'nice'], type='var * string')
+    >>> index_to_word
+    ['angry', 'attribute', 'been', 'best', 'bullies', 'care', 'comes', 'defining', "don't", ...]
 
 
-TO BE CONTINUED
+Naive Bayes Classifier
+----------------------
+
+Naive Bayes, as previously mentioned, is unlikely to be a top-performing algorithm for text
+classification, but it is almost never "bad" thus it is a great benchmark. You'll see below
+that we can vectorize the computation of Naive Bayes very nicely using XND. In case this is your first time
+coming across the Naive Bayes implementation details, below is a description in "plane English"
+about how it works.
+
+We'll talk about all three words in its name "Naive Bayes Classifier" one-by-one.
+
+Let's start with the last
+word "Classifier" since it's the easiest. In machine learning we say something is a "classification
+problem" if you are trying to find a mapping function *to* a finite set of outcomes (usually a *small*
+finite set). Another common type of problem in machine learning is "regression", which is where you
+are trying to find a mapping function to a continuous space (real numbers, for example). The problem we're
+tackling here is to categorize (classify!) NIPS publications into the set of conference years (31 possible
+outcomes, one for each of the years there has been a NIPS conference). You could argue that we should
+model this problem as regression, treating time (year numbers) as continuous, but we'll go ahead and treat
+it as categorical in this case so that we can use Naive Bayes.
+
+Next word: "Bayes". Bayes' rule is so useful because you can flip around conditional probabilities.
+Here's an example: Say you have a corpus of news articles. Some are sports, some are politics, and some
+are science. We can easily answer questions like this: "What is the probability of seeing the word *football* in a sports article?" The way to estimate that is probably obvious to you (look through all the sports articles and see how many have that word, divided by the number of total sports articles). But what if I flip the question around like this: "What is the probability of an article being about sports when the word *football* is in it?". The way to estimate that is less obvious... and that's why we have Bayes' rule. We will use this this as a part of the Naive Bayes algorithm.
+
+Final word: "Naive". This is the most confusion word in the name. Are we calling Thomas Bayes naive? No, we're not. He is far from naive I'm sure. The word "naive" is in reference to a very naive assumption that we make as a part of the Naive Bayes algorithm. Here's how it goes (sing the same example from above): Our *real* goal, if we could achieve it (hint: we can't) would be to estimate the probability of an article being about sports given *all* the words in the article. (In the example above, I only mentioned estimating the probability of *sports* given the single word *football*. Now I want to know what it is given *all* the words in the article.) It turns out this is not going to be possible. There are too many combinations of words that can (and do) appear in the same article, and estimating the probability of all those combinations would require more data than we could ever have, and more computation that we could ever have. So, we are forced on once again *simplify* the problem by making an assumption... a very "naive" assumption. Here it is: We'll assume that the words in a single article are independent events. That is, we'll assume that the probability of the word "football" appearing in a article is the same no matter if the word "game" is in the article. Put another way: We assume that knowing the word "game" is in an article will not change the probability that the word "football" is in that same article. This is of course a very silly assumption, but it simplifies the math to become doable, and it surprisingly still works okay.
+
+No math above, just plane English. Feel free to look up the math, and without further ado here is the code:
+
+
+
 
 
 .. _nb_missing_features:
