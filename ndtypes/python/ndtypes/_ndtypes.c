@@ -531,6 +531,7 @@ Ndtype_BoolFunc(ndt_is_complex)
 
 Ndtype_BoolFunc(ndt_is_c_contiguous)
 Ndtype_BoolFunc(ndt_is_f_contiguous)
+Ndtype_BoolFunc(ndt_is_var_contiguous)
 
 
 static PyObject *
@@ -615,6 +616,7 @@ ndtype_apply(PyObject *self, PyObject *args)
     NDT_STATIC_CONTEXT(ctx);
     const ndt_t *sig = NDT(self);
     const ndt_t *in[NDT_MAX_ARGS];
+    const int64_t li[NDT_MAX_ARGS] = {0};
     ndt_apply_spec_t spec;
     PyObject *flags = NULL, *out = NULL, *broadcast = NULL, *outer_dims = NULL;
     PyObject *res = NULL;
@@ -643,7 +645,7 @@ ndtype_apply(PyObject *self, PyObject *args)
     }
 
     spec = ndt_apply_spec_empty;
-    if (ndt_typecheck(&spec, sig, in, (int)nin, NULL, NULL, &ctx) < 0) {
+    if (ndt_typecheck(&spec, sig, in, li, (int)nin, NULL, NULL, &ctx) < 0) {
         return seterr(&ctx);
     }
 
@@ -729,6 +731,7 @@ static PyObject *
 ndtype_ndim(PyObject *self, PyObject *args UNUSED)
 {
     const ndt_t *t = NDT(self);
+    int ldim;
 
     if (ndt_is_abstract(t)) {
         PyErr_SetString(PyExc_TypeError,
@@ -736,7 +739,8 @@ ndtype_ndim(PyObject *self, PyObject *args UNUSED)
         return NULL;
     }
 
-    return PyLong_FromLong(t->ndim);
+    ldim = ndt_logical_ndim(t);
+    return PyLong_FromLong(ldim);
 }
 
 static PyObject *
@@ -911,6 +915,7 @@ static PyMethodDef ndtype_methods [] =
   /* Boolean functions on array types */
   { "is_c_contiguous", (PyCFunction)ndtype_ndt_is_c_contiguous, METH_NOARGS, doc_is_c_contiguous },
   { "is_f_contiguous", (PyCFunction)ndtype_ndt_is_f_contiguous, METH_NOARGS, doc_is_f_contiguous },
+  { "is_var_contiguous", (PyCFunction)ndtype_ndt_is_var_contiguous, METH_NOARGS, NULL },
 
   /* Binary functions */
   { "match", (PyCFunction)ndtype_match, METH_O, doc_match },

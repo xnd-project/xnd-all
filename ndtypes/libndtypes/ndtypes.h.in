@@ -194,6 +194,7 @@ enum ndt {
   AnyKind,
     FixedDim,
     VarDim,
+    VarDimElem,
     SymbolicDim,
     EllipsisDim,
 
@@ -385,6 +386,11 @@ struct _ndt {
         struct {
             const ndt_t *type;
         } VarDim;
+
+        struct {
+            const ndt_t *type;
+            int64_t index;
+        } VarDimElem;
 
         struct {
             enum ndt_contig tag;
@@ -593,10 +599,11 @@ NDTYPES_API char *ndt_strdup(const char *s, ndt_context_t *ctx);
 NDTYPES_API char *ndt_asprintf(ndt_context_t *ctx, const char *fmt, ...);
 
 /* Type functions (unstable API) */
+NDTYPES_API int ndt_logical_ndim(const ndt_t *t);
+NDTYPES_API const ndt_t *ndt_logical_dim_at(const ndt_t *t, int n);
 NDTYPES_API const ndt_t *ndt_dtype(const ndt_t *t);
 NDTYPES_API const ndt_t *ndt_hidden_dtype(const ndt_t *t);
 NDTYPES_API int ndt_dims_dtype(const ndt_t *dims[NDT_MAX_DIM], const ndt_t **dtype, const ndt_t *t);
-NDTYPES_API const ndt_t *ndt_dim_at(const ndt_t *t, int n);
 NDTYPES_API int ndt_as_ndarray(ndt_ndarray_t *a, const ndt_t *t, ndt_context_t *ctx);
 NDTYPES_API ndt_ssize_t ndt_hash(const ndt_t *t, ndt_context_t *ctx);
 
@@ -652,6 +659,8 @@ NDTYPES_API int ndt_is_c_contiguous(const ndt_t *t);
 NDTYPES_API int ndt_is_f_contiguous(const ndt_t *t);
 NDTYPES_API int ndt_really_fortran(const ndt_t *t);
 
+NDTYPES_API int ndt_is_var_contiguous(const ndt_t *t);
+
 NDTYPES_API int ndt_is_scalar(const ndt_t *t);
 NDTYPES_API int ndt_is_signed(const ndt_t *t);
 NDTYPES_API int ndt_is_unsigned(const ndt_t *t);
@@ -668,14 +677,17 @@ NDTYPES_API int ndt_is_big_endian(const ndt_t *t);
 /*****************************************************************************/
 
 NDTYPES_API const ndt_t *ndt_copy(const ndt_t *t, ndt_context_t *ctx);
-NDTYPES_API const ndt_t *ndt_copy_contiguous(const ndt_t *t, ndt_context_t *ctx);
-NDTYPES_API const ndt_t *ndt_copy_contiguous_dtype(const ndt_t *t, const ndt_t *dtype, ndt_context_t *ctx);
+NDTYPES_API const ndt_t *ndt_copy_contiguous(const ndt_t *t, int64_t linear_index, ndt_context_t *ctx);
+NDTYPES_API const ndt_t *ndt_copy_contiguous_dtype(const ndt_t *t, const ndt_t *dtype, int64_t linear_index, ndt_context_t *ctx);
 NDTYPES_API const ndt_t *ndt_copy_abstract_var_dtype(const ndt_t *t, const ndt_t *dtype, ndt_context_t *ctx);
+
+NDTYPES_API const ndt_t *ndt_convert_to_var_elem(const ndt_t *t, const ndt_t *type, int64_t index, ndt_context_t *ctx);
+
 
 NDTYPES_API int ndt_equal(const ndt_t *t, const ndt_t *u);
 NDTYPES_API int ndt_match(const ndt_t *p, const ndt_t *c, ndt_context_t *ctx);
 NDTYPES_API int ndt_typecheck(ndt_apply_spec_t *spec, const ndt_t *sig,
-                              const ndt_t *in[], const int nin,
+                              const ndt_t *in[], const int64_t li[], const int nin,
                               const ndt_constraint_t *c, const void *args,
                               ndt_context_t *ctx);
 NDTYPES_API int ndt_fast_binary_fixed_typecheck(ndt_apply_spec_t *spec, const ndt_t *sig,
@@ -761,6 +773,8 @@ NDTYPES_API const ndt_t *ndt_fixed_dim_tag(const ndt_t *type, enum ndt_contig ta
 NDTYPES_API const ndt_t *ndt_abstract_var_dim(const ndt_t *type, bool opt, ndt_context_t *ctx);
 NDTYPES_API int64_t ndt_var_indices(int64_t *res_start, int64_t *res_step, const ndt_t *t,
                                     int64_t index, ndt_context_t *ctx);
+NDTYPES_API int64_t ndt_var_indices_non_empty(int64_t *res_start, int64_t *res_step, const ndt_t *t,
+                                              int64_t index, ndt_context_t *ctx);
 NDTYPES_API ndt_slice_t *ndt_var_add_slice(int32_t *nslices, const ndt_t *t,
                                            int64_t start, int64_t stop, int64_t step,
                                            ndt_context_t *ctx);
