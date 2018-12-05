@@ -863,6 +863,13 @@ EQUAL_TEST_CASES = [
 #            Definition of generalized slicing and indexing
 # ======================================================================
 
+def have_none(lst):
+    if isinstance(lst, (list, tuple)):
+        return any(have_none(item) for item in lst)
+    if isinstance(lst, dict):
+        return any(have_none(item) for item in lst.values())
+    return lst is None
+
 def maxlevel(lst):
     """Return maximum nesting depth"""
     maxlev = 0
@@ -889,10 +896,13 @@ def getitem(lst, indices):
     if isinstance(i, int):
         return getitem(item, indices)
 
+    # Empty slice: check if all subsequent indices are in range for the
+    # full slice, raise IndexError otherwise. This is NumPy's behavior.
     if not item:
-        # Empty slice: check if all subsequent indices are in range for the
-        # full slice, raise IndexError otherwise. This is NumPy's behavior.
-        _ = [getitem(x, indices) for x in lst]
+        if lst:
+           _ = getitem(lst, (slice(None),) + indices)
+        elif any(isinstance(k, int) for k in indices):
+           raise IndexError
         return []
 
     return [getitem(x, indices) for x in item]
@@ -1006,6 +1016,14 @@ def rslice(ndim):
     step = None if randrange(5) == 4 else step
     return slice(start, stop, step)
 
+def rslice_neg(ndim):
+    start = randrange(-ndim-1, ndim+1)
+    stop = randrange(-ndim-1, ndim+1)
+    step = 0
+    while step == 0:
+        step = randrange(-ndim-1, ndim+1)
+    return slice(start, stop, step)
+
 def multislice(ndim):
     return tuple(rslice(ndim) for _ in range(randrange(1, ndim+1)))
 
@@ -1041,14 +1059,26 @@ def mixed_index(max_ndim):
     indices = []
     for i in range(1, ndim+1):
         if randrange(2):
-            indices.append(randrange(max_ndim))
+            indices.append(randrange(-max_ndim, max_ndim))
         else:
             indices.append(rslice(ndim))
+    return tuple(indices)
+
+def mixed_index_neg(max_ndim):
+    ndim = randrange(1, max_ndim+1)
+    indices = []
+    for i in range(1, ndim+1):
+        if randrange(2):
+            indices.append(randrange(-max_ndim, max_ndim))
+        else:
+            indices.append(rslice_neg(ndim))
     return tuple(indices)
 
 def mixed_indices(max_ndim):
     for i in range(5):
         yield mixed_index(max_ndim)
+    for i in range(5):
+        yield mixed_index_neg(max_ndim)
 
 def itos(indices):
     return ", ".join(str(i) if isinstance(i, int) else "%s:%s:%s" %

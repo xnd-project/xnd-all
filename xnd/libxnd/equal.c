@@ -111,6 +111,20 @@ xnd_strict_equal(const xnd_t *x, const xnd_t *y, ndt_context_t *ctx)
         return 1;
     }
 
+    case VarDimElem: {
+        const xnd_t xnext = apply_stored_index(x, ctx);
+        if (xnd_err_occurred(&xnext)) {
+            return -1;
+        }
+
+        const xnd_t ynext = apply_stored_index(y, ctx);
+        if (xnd_err_occurred(&ynext)) {
+            return -1;
+        }
+
+        return xnd_strict_equal(&xnext, &ynext, ctx);
+    }
+
     case Tuple: {
         if (u->Tuple.shape != t->Tuple.shape) {
             return 0;
@@ -859,6 +873,8 @@ equal_complex128(const double real, const double imag, const xnd_t * const x)
 int
 xnd_equal(const xnd_t *x, const xnd_t *y, ndt_context_t *ctx)
 {
+    APPLY_STORED_INDICES_INT(x)
+    APPLY_STORED_INDICES_INT(y)
     const ndt_t * const t = x->type;
     const ndt_t * const u = y->type;
     int n;
@@ -1198,8 +1214,12 @@ xnd_equal(const xnd_t *x, const xnd_t *y, ndt_context_t *ctx)
         return memcmp(a, b, (size_t)asize) == 0;
     }
 
+    /* NOT REACHED: intercepted by apply_stored_indices(). */
+    case VarDimElem:
     /* NOT REACHED: intercepted by equal_ref(). */
     case Ref:
+        ndt_err_format(ctx, NDT_RuntimeError, "unexpected VarDimElem or Ref");
+        return -1;
 
     /* NOT REACHED: xnd types must be concrete. */
     case Module: case Function:

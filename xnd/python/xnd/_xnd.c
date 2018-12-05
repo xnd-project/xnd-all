@@ -609,6 +609,27 @@ mblock_init(xnd_t * const x, PyObject *v)
         return 0;
     }
 
+    case VarDimElem: {
+        int64_t start, step, shape;
+
+        shape = ndt_var_indices(&start, &step, t, x->index, &ctx);
+        if (shape < 0) {
+            return seterr_int(&ctx);
+        }
+
+        const int64_t i = adjust_index(t->VarDimElem.index, shape, &ctx);
+        if (i < 0) {
+            return seterr_int(&ctx);
+        }
+
+        xnd_t next = xnd_var_dim_next(x, start, step, i);
+        if (mblock_init(&next, v) < 0) {
+            return -1;
+        }
+
+        return 0;
+    }
+
     case Tuple: {
         const int64_t shape = t->Tuple.shape;
         int64_t i;
@@ -1414,6 +1435,23 @@ _pyxnd_value(const xnd_t * const x, const int64_t maxshape)
         return lst;
     }
 
+    case VarDimElem: {
+        int64_t start, step, shape;
+
+        shape = ndt_var_indices(&start, &step, t, x->index, &ctx);
+        if (shape < 0) {
+            return seterr(&ctx);
+        }
+
+        const int64_t i = adjust_index(t->VarDimElem.index, shape, &ctx);
+        if (i < 0) {
+            return seterr(&ctx);
+        }
+
+        const xnd_t next = xnd_var_dim_next(x, start, step, i);
+        return _pyxnd_value(&next, maxshape);
+    }
+
     case Tuple: {
         PyObject *tuple, *v;
         int64_t shape, i;
@@ -1826,6 +1864,24 @@ pyxnd_len(const xnd_t *x)
         return safe_downcast(shape);
     }
 
+    case VarDimElem: {
+        NDT_STATIC_CONTEXT(ctx);
+        int64_t start, step, shape;
+
+        shape = ndt_var_indices(&start, &step, t, x->index, &ctx);
+        if (shape < 0) {
+            return seterr_int(&ctx);
+        }
+
+        const int64_t i = adjust_index(t->VarDimElem.index, shape, &ctx);
+        if (i < 0) {
+            return seterr_int(&ctx);
+        }
+
+        const xnd_t next = xnd_var_dim_next(x, start, step, i);
+        return pyxnd_len(&next);
+    }
+
     case Tuple: {
         return safe_downcast(t->Tuple.shape);
     }
@@ -2051,7 +2107,6 @@ pyxnd_assign(XndObject *self, PyObject *key, PyObject *value)
     NDT_STATIC_CONTEXT(ctx);
     xnd_index_t indices[NDT_MAX_DIM];
     xnd_t x;
-    int free_type = 0;
     int ret, len;
     uint8_t flags;
 
@@ -2070,20 +2125,7 @@ pyxnd_assign(XndObject *self, PyObject *key, PyObject *value)
         return -1;
     }
 
-    if (flags & KEY_SLICE) {
-        x = xnd_multikey(&self->xnd, indices, len, &ctx);
-        if (x.ptr == NULL) {
-            return seterr_int(&ctx);
-        }
-        free_type = 1;
-    }
-    else {
-        x = xnd_subtree(&self->xnd, indices, len, &ctx);
-        if (x.ptr == NULL) {
-            return seterr_int(&ctx);
-        }
-    }
-
+    x = xnd_subscript(&self->xnd, indices, len, &ctx);
     if (x.ptr == NULL) {
         return seterr_int(&ctx);
     }
@@ -2098,10 +2140,7 @@ pyxnd_assign(XndObject *self, PyObject *key, PyObject *value)
         ret = mblock_init(&x, value);
     }
 
-    if (free_type) {
-        ndt_decref((ndt_t *)x.type);
-    }
-
+    ndt_decref(x.type);
     return ret;
 }
 
@@ -2198,6 +2237,32 @@ pyxnd_align(PyObject *self, PyObject *args UNUSED)
     return PyLong_FromUnsignedLong(align);
 }
 
+static PyObject *
+pyxnd_copy_contiguous(PyObject *self, PyObject *args UNUSED)
+{
+    NDT_STATIC_CONTEXT(ctx);
+    XndObject *src = (XndObject *)self;
+    PyObject *dest;
+    const ndt_t *t;
+
+    t = ndt_copy_contiguous(XND_TYPE(src), XND_INDEX(src), &ctx);
+    if (t == NULL) {
+        return seterr(&ctx);
+    }
+
+    dest = Xnd_EmptyFromType(Py_TYPE(src), t);
+    ndt_decref(t);
+    if (dest == NULL) {
+        return NULL;
+    }
+
+    if (xnd_copy(XND(dest), XND(src), src->mblock->xnd->flags, &ctx) < 0) {
+        Py_DECREF(dest);
+        return seterr(&ctx);
+    }
+
+    return dest;
+}
 
 static PyGetSetDef pyxnd_getsets [] =
 {
@@ -2228,6 +2293,7 @@ static PyMethodDef pyxnd_methods [] =
   { "short_value", (PyCFunction)pyxnd_short_value, METH_VARARGS|METH_KEYWORDS, doc_short_value },
   { "strict_equal", (PyCFunction)pyxnd_strict_equal, METH_O, NULL },
   { "split", (PyCFunction)pyxnd_split, METH_VARARGS|METH_KEYWORDS, NULL },
+  { "copy_contiguous", (PyCFunction)pyxnd_copy_contiguous, METH_NOARGS, NULL },
 
   /* Class methods */
   { "empty", (PyCFunction)pyxnd_empty, METH_O|METH_CLASS, doc_empty },
