@@ -37,6 +37,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include "ndtypes.h"
+#include "overflow.h"
 
 
 static inline void
@@ -388,8 +389,8 @@ ndt_copy(const ndt_t *t, ndt_context_t *ctx)
     case Bool:
     case Int8: case Int16: case Int32: case Int64:
     case Uint8: case Uint16: case Uint32: case Uint64:
-    case Float16: case Float32: case Float64:
-    case Complex32: case Complex64: case Complex128:
+    case BFloat16: case Float16: case Float32: case Float64:
+    case BComplex32: case Complex32: case Complex64: case Complex128:
     case FixedString: case FixedBytes:
     case String: case Bytes:
     case Char: {
@@ -476,14 +477,16 @@ var_init_offsets(offsets_t *m, ndt_context_t *ctx)
     return 0;
 }
 
-static int32_t
-get_index(int32_t shape, int64_t index, ndt_context_t *ctx)
+static int64_t
+get_index(int64_t shape, int64_t index, ndt_context_t *ctx)
 {
+    bool overflow = false;
+
     if (index < 0) {
-        index += shape;
+        index = ADDi64(index, shape, &overflow);
     }
 
-    if (index < 0 || index >= shape) {
+    if (overflow || index < 0 || index >= shape) {
         ndt_err_format(ctx, NDT_IndexError,
             "index with value %" PRIi64 " out of bounds",
             index);
