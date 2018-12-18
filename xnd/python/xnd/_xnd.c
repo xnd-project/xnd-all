@@ -41,6 +41,7 @@
 #include "pyndtypes.h"
 #include "xnd.h"
 #include "util.h"
+#include "overflow.h"
 #include "docstrings.h"
 
 #define XND_MODULE
@@ -169,7 +170,7 @@ mblock_dealloc(MemoryBlockObject *self)
 }
 
 static MemoryBlockObject *
-mblock_empty(PyObject *type)
+mblock_empty(PyObject *type, uint32_t flags)
 {
     NDT_STATIC_CONTEXT(ctx);
     MemoryBlockObject *self;
@@ -184,7 +185,7 @@ mblock_empty(PyObject *type)
         return NULL;
     }
 
-    self->xnd = xnd_empty_from_type(NDT(type), XND_OWN_EMBEDDED, &ctx);
+    self->xnd = xnd_empty_from_type(NDT(type), XND_OWN_EMBEDDED|flags, &ctx);
     if (self->xnd == NULL) {
         Py_DECREF(self);
         return (MemoryBlockObject *)seterr(&ctx);
@@ -196,11 +197,11 @@ mblock_empty(PyObject *type)
 }
 
 static MemoryBlockObject *
-mblock_from_typed_value(PyObject *type, PyObject *value)
+mblock_from_typed_value(PyObject *type, PyObject *value, uint32_t flags)
 {
     MemoryBlockObject *self;
 
-    self = mblock_empty(type);
+    self = mblock_empty(type, flags);
     if (self == NULL) {
         return NULL;
     }
@@ -1277,20 +1278,59 @@ pyxnd_from_mblock(PyTypeObject *tp, MemoryBlockObject *mblock)
     return (PyObject *)self;
 }
 
+static uint32_t
+device_flags(PyObject *tuple)
+{
+    PyObject *device;
+    PyObject *no;
+
+    if (!PyTuple_Check(tuple) || PyTuple_GET_SIZE(tuple) != 2) {
+        PyErr_SetString(PyExc_TypeError,
+            "device argument must be of the form (device_name, device_no)");
+        return UINT32_MAX;
+    }
+
+    device = PyTuple_GET_ITEM(tuple, 0);
+    if (!PyUnicode_Check(device) ||
+        PyUnicode_CompareWithASCIIString(device, "cuda") != 0) {
+        PyErr_SetString(PyExc_ValueError,
+            "currently only 'cuda' is supported as a device name");
+        return UINT32_MAX;
+    }
+
+    no = PyTuple_GET_ITEM(tuple, 1);
+    if (!PyLong_Check(no) || PyLong_AsLong(no) != -1) {
+        PyErr_SetString(PyExc_ValueError,
+            "currently only 'cuda:managed' is supported as a device");
+        return UINT32_MAX;
+    }
+
+    return XND_CUDA_MANAGED;
+}
+
 static PyObject *
 pyxnd_new(PyTypeObject *tp, PyObject *args, PyObject *kwds)
 {
-    static char *kwlist[] = {"type", "value", NULL};
+    static char *kwlist[] = {"type", "value", "device", NULL};
     PyObject *type = NULL;
     PyObject *value = NULL;
+    PyObject *tuple = Py_None;
     MemoryBlockObject *mblock;
+    uint32_t flags = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist, &type,
-        &value)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", kwlist, &type,
+        &value, &tuple)) {
         return NULL;
     }
 
-    mblock = mblock_from_typed_value(type, value);
+    if (tuple != Py_None) {
+        flags = device_flags(tuple);
+        if (flags == UINT32_MAX) {
+            return NULL;
+        }
+    }
+
+    mblock = mblock_from_typed_value(type, value, flags);
     if (mblock == NULL) {
         return NULL;
     }
@@ -1299,16 +1339,32 @@ pyxnd_new(PyTypeObject *tp, PyObject *args, PyObject *kwds)
 }
 
 static PyObject *
-pyxnd_empty(PyTypeObject *tp, PyObject *type)
+pyxnd_empty(PyTypeObject *tp, PyObject *args, PyObject *kwds)
 {
+    static char *kwlist[] = {"type", "device", NULL};
+    PyObject *type = Py_None;
+    PyObject *tuple = Py_None;
     MemoryBlockObject *mblock;
+    uint32_t flags = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &type,
+        &tuple)) {
+        return NULL;
+    }
+
+    if (tuple != Py_None) {
+        flags = device_flags(tuple);
+        if (flags == UINT32_MAX) {
+            return NULL;
+        }
+    }
 
     type = Ndt_FromObject(type);
     if (type == NULL) {
         return NULL;
     }
 
-    mblock = mblock_empty(type);
+    mblock = mblock_empty(type, flags);
     Py_DECREF(type);
     if (mblock == NULL) {
         return NULL;
@@ -2281,7 +2337,7 @@ pyxnd_copy_contiguous(PyObject *self, PyObject *args UNUSED)
         return seterr(&ctx);
     }
 
-    dest = Xnd_EmptyFromType(Py_TYPE(src), t);
+    dest = Xnd_EmptyFromType(Py_TYPE(src), t, 0);
     ndt_decref(t);
     if (dest == NULL) {
         return NULL;
@@ -2327,7 +2383,7 @@ static PyMethodDef pyxnd_methods [] =
   { "copy_contiguous", (PyCFunction)pyxnd_copy_contiguous, METH_NOARGS, NULL },
 
   /* Class methods */
-  { "empty", (PyCFunction)pyxnd_empty, METH_O|METH_CLASS, doc_empty },
+  { "empty", (PyCFunction)pyxnd_empty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, doc_empty },
   { "from_buffer", (PyCFunction)pyxnd_from_buffer, METH_O|METH_CLASS, doc_from_buffer },
   { "_unsafe_from_data", (PyCFunction)pyxnd_from_buffer_and_type, METH_VARARGS|METH_KEYWORDS|METH_CLASS, NULL },
 
@@ -2851,6 +2907,7 @@ static const ndt_t *
 var_from_shapes(PyObject *lst, const ndt_t *dtype)
 {
     NDT_STATIC_CONTEXT(ctx);
+    bool overflow = false;
     const ndt_t *t;
     ndt_offsets_t *offsets;
     int32_t *ptr;
@@ -2875,13 +2932,14 @@ var_from_shapes(PyObject *lst, const ndt_t *dtype)
             return NULL;
         }
 
-        offsets = ndt_offsets_new(slen+1, &ctx);
+        offsets = ndt_offsets_new((int32_t)(slen+1), &ctx);
         if (offsets == NULL) {
             return seterr_ndt(&ctx);
         }
 
         ptr = (int32_t *)offsets->v;
-        ptr[0] = sum = 0;
+        sum = 0;
+        ptr[0] = 0;
         opt = false;
 
         for (k = 0; k < slen; k++) {
@@ -2898,8 +2956,16 @@ var_from_shapes(PyObject *lst, const ndt_t *dtype)
                     return NULL;
                 }
             }
-            sum += shape;
-            ptr[k+1] = sum;
+
+            sum = ADDi64(sum, shape, &overflow);
+            if (overflow || sum > INT32_MAX) {
+                PyErr_SetString(PyExc_ValueError,
+                    "variable dimension is too large");
+                ndt_decref_offsets(offsets);
+                return NULL;
+            }
+
+            ptr[k+1] = (int32_t)sum;
         }
 
         t = ndt_var_dim(dtype, offsets, 0, NULL, opt, &ctx);
@@ -3398,7 +3464,7 @@ CONST_XND(const PyObject *v)
 }
 
 static PyObject *
-Xnd_EmptyFromType(PyTypeObject *tp, const ndt_t *t)
+Xnd_EmptyFromType(PyTypeObject *tp, const ndt_t *t, uint32_t flags)
 {
     MemoryBlockObject *mblock;
     PyObject *type;
@@ -3408,7 +3474,7 @@ Xnd_EmptyFromType(PyTypeObject *tp, const ndt_t *t)
         return NULL;
     }
 
-    mblock = mblock_empty(type);
+    mblock = mblock_empty(type, flags);
     Py_DECREF(type);
     if (mblock == NULL) {
         return NULL;

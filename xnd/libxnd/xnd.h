@@ -35,6 +35,15 @@
 #define XND_H
 
 
+#ifdef __cplusplus
+extern "C" {
+  #ifndef __STDC_LIMIT_MACROS
+    #define __STDC_LIMIT_MACROS
+    #define XND_CLEAR_STDC_LIMIT_MACROS
+  #endif
+#endif
+
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -81,6 +90,7 @@
 #define XND_OWN_STRINGS  0x00000004U /* embedded string pointers */
 #define XND_OWN_BYTES    0x00000008U /* embedded bytes pointers */
 #define XND_OWN_POINTERS 0x00000010U /* embedded pointers */
+#define XND_CUDA_MANAGED 0x00000020U /* cuda managed memory */
 
 #define XND_OWN_ALL (XND_OWN_TYPE |    \
                      XND_OWN_DATA |    \
@@ -239,6 +249,16 @@ XND_API double xnd_bfloat_unpack(char *p);
 
 
 /*****************************************************************************/
+/*                                   Cuda                                    */
+/*****************************************************************************/
+
+void *xnd_cuda_calloc_managed(uint16_t align, int64_t size, ndt_context_t *ctx);
+void xnd_cuda_free(void *ptr);
+int xnd_cuda_mem_prefetch_async(const void *ptr, int64_t count, int dev, ndt_context_t *ctx);
+int xnd_cuda_device_synchronize(ndt_context_t *ctx);
+
+
+/*****************************************************************************/
 /*                           Static inline functions                         */
 /*****************************************************************************/
 
@@ -257,6 +277,7 @@ adjust_index(const int64_t i, const int64_t shape, ndt_context_t *ctx)
     return k;
 }
 
+#ifndef __cplusplus
 /*
  * This looks inefficient, but both gcc and clang clean up unused xnd_t members.
  */
@@ -426,6 +447,7 @@ xnd_nominal_next(const xnd_t *x, ndt_context_t *ctx)
 
     return next;
 }
+#endif
 
 #if NDT_SYS_BIG_ENDIAN == 1
   #define XND_REV_COND NDT_LITTLE_ENDIAN
@@ -498,5 +520,15 @@ le(uint32_t flags)
         }                                          \
         x = &_##x##tail;                           \
     }
+
+
+#ifdef __cplusplus
+  #ifdef XND_CLEAR_STDC_LIMIT_MACROS
+    #undef XND_CLEAR_STDC_LIMIT_MACROS
+    #undef __STDC_LIMIT_MACROS
+  #endif
+} /* END extern "C" */
+#endif
+
 
 #endif /* XND_H */
