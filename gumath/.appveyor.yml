@@ -1,19 +1,16 @@
 skip_tags: true
 
-matrix:
-  fast_finish: true
-
-os: Visual Studio 2015
+image: Visual Studio 2017
 
 environment:
   matrix:
     - PLATFORM: "x64"
-      PYTHON: "C:\\Python36-x64"
+      PYTHON: "C:\\Python37-x64"
     - PLATFORM: "x86"
-      PYTHON: "C:\\Python36"
+      PYTHON: "C:\\Python37"
 
-before_build:
-  "\"C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\vcvarsall.bat\" %PLATFORM%"
+install:
+  - "%PYTHON%\\python.exe -m pip install numpy"
 
 build_script:
   - git clone https://github.com/plures/ndtypes.git

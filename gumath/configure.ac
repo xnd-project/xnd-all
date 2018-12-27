@@ -41,11 +41,12 @@ AC_SUBST(host)
 
 # Language and compiler:
 AC_LANG_C
-saved_cflags=$CFLAGS
-saved_cxxflags=$CXXFLAGS
+saved_cflags="$CFLAGS"
+saved_cxxflags="$CXXFLAGS"
 AC_PROG_CC
-CFLAGS=$saved_cflags
-CXXFLAGS=$saved_cxxflags
+AC_PROG_CXX
+CFLAGS="$saved_cflags"
+CXXFLAGS="$saved_cxxflags"
 
 # ar and ranlib:
 AC_CHECK_TOOL(AR, ar, ar)
@@ -64,16 +65,32 @@ AC_PROG_INSTALL
 AC_SUBST(INSTALL)
 
 # Cuda compiler:
-ac_save_cxx="$CXX"
-CXX=
+AC_MSG_CHECKING(for nvcc)
+saved_cc="$CC"
+saved_cflags="$CFLAGS"
+saved_cxxflags="$CXXFLAGS"
+CC=nvcc
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+void
+f(void)
+{
+    return;
+}
+]])],
+[have_nvcc=yes],
+[have_nvcc=no],
+[have_nvcc=undefined])
+CC="$saved_cc"
+CFLAGS="$saved_cflags"
+CXXFLAGS="$saved_cxxflags"
+AC_MSG_RESULT($have_nvcc)
+
 CUDA_CXX=
-AC_PROG_CXX([nvcc])
-if test "$CXX" = "nvcc"; then
-  CUDA_CXX="nvcc"
-  AC_DEFINE(HAVE_CUDA, 1, [Define to 1 if you have the nvcc cuda compiler.])
+if test "$have_nvcc" = yes; then
+    CUDA_CXX=nvcc
+    AC_DEFINE(HAVE_CUDA, 1, [Define to 1 if you have the nvcc cuda compiler.])
 fi
 AC_SUBST(CUDA_CXX)
-CXX=$ac_save_cxx
 
 # Add an explicit include directory.
 AC_MSG_CHECKING(for --with-includes)
@@ -154,7 +171,7 @@ esac
 
 # Substitute variables and generate output:
 if test -z "$LD"; then
-    LD="$CC"
+    LD="$CXX"
 fi
 AC_SUBST(LD)
 AC_SUBST(AR)
@@ -169,9 +186,9 @@ else
 fi
 
 if test -z "$CXXFLAGS"; then
-    CONFIGURE_CXXFLAGS="$XND_INCLUDE -Wall -Wextra -O2 -g"
+    CONFIGURE_CXXFLAGS="$XND_INCLUDE -Wall -Wextra -std=c++11 $GM_OPT -g"
 else
-    CONFIGURE_CXXFLAGS="$XND_INCLUDE -Wall -Wextra -O2 -g $CXXFLAGS"
+    CONFIGURE_CXXFLAGS="$XND_INCLUDE -Wall -Wextra -std=c++11 $GM_OPT -g $CXXFLAGS"
 fi
 
 if test -z "$LDFLAGS"; then

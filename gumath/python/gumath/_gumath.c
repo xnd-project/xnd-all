@@ -45,15 +45,23 @@
 #define GUMATH_MODULE
 #include "pygumath.h"
 
+
 #ifdef _MSC_VER
   #ifndef UNUSED
     #define UNUSED
   #endif
+  #include <float.h>
+  #include <fenv.h>
+  #pragma fenv_access(on)
 #else
   #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
     #define UNUSED __attribute__((unused))
   #else
     #define UNUSED
+  #endif
+  #include <fenv.h>
+  #if 0 /* Not supported by gcc and clang. */
+    #pragma STDC FENV_ACCESS ON
   #endif
 #endif
 
@@ -206,39 +214,46 @@ gufunc_call(GufuncObject *self, PyObject *args, PyObject *kwds)
 
     if (self->flags == GM_CUDA_FUNC) {
     #if HAVE_CUDA
-        for (i = 0; i < nin+spec.nout; i++) {
-            if (xnd_cuda_mem_prefetch_async(stack[i].ptr, stack[i].type->datasize, 0, &ctx) < 0) {
-                clear_objects(result, spec.nout);
-                return seterr(&ctx);
-            }
-        }
+        const int ret = gm_apply(&kernel, stack, spec.outer_dims, &ctx);
 
-        if (gm_apply(&kernel, stack, spec.outer_dims, &ctx) < 0) {
+        if (xnd_cuda_device_synchronize(&ctx) < 0 || ret < 0) {
             clear_objects(result, spec.nout);
-            return seterr(&ctx);
-        }
-
-        if (xnd_cuda_device_synchronize(&ctx) < 0) {
-            clear_objects(result, spec.nout);
+            ndt_apply_spec_clear(&spec);
             return seterr(&ctx);
         }
     #else
         ndt_err_format(&ctx, NDT_RuntimeError,
            "internal error: GM_CUDA_FUNC set in a build without cuda support");
         clear_objects(result, spec.nout);
+        ndt_apply_spec_clear(&spec);
         return seterr(&ctx);
     #endif
     }
     else {
     #ifdef HAVE_PTHREAD_H
-        if (gm_apply_thread(&kernel, stack, spec.outer_dims, spec.flags,
-            max_threads, &ctx) < 0) {
+        const int rounding = fegetround();
+        fesetround(FE_TONEAREST);
+
+        const int ret = gm_apply_thread(&kernel, stack, spec.outer_dims,
+                                        spec.flags, max_threads, &ctx);
+        fesetround(rounding);
+
+        if (ret < 0) {
             clear_objects(result, spec.nout);
+            ndt_apply_spec_clear(&spec);
             return seterr(&ctx);
         }
     #else
-        if (gm_apply(&kernel, stack, spec.outer_dims, &ctx) < 0) {
+        const int rounding = fegetround();
+        fesetround(FE_TONEAREST);
+
+        const int ret = gm_apply(&kernel, stack, spec.outer_dims, &ctx);
+
+        fesetround(rounding);
+
+        if (ret < 0) {
             clear_objects(result, spec.nout);
+            ndt_apply_spec_clear(&spec);
             return seterr(&ctx);
         }
     #endif
@@ -246,11 +261,11 @@ gufunc_call(GufuncObject *self, PyObject *args, PyObject *kwds)
 
     for (i = 0; i < spec.nout; i++) {
         if (ndt_is_abstract(spec.out[i])) {
-            ndt_decref(spec.out[i]);
             PyObject *x = Xnd_FromXnd(xnd, &stack[nin+i]);
             stack[nin+i] = xnd_error;
             if (x == NULL) {
                 clear_objects(result, i);
+                ndt_apply_spec_clear(&spec);
                 for (k = i+1; k < spec.nout; k++) {
                     if (ndt_is_abstract(spec.out[k])) {
                         xnd_del_buffer(&stack[nin+k], XND_OWN_ALL);
@@ -261,22 +276,19 @@ gufunc_call(GufuncObject *self, PyObject *args, PyObject *kwds)
         }
     }
 
-    if (spec.nbroadcast > 0) {
-        for (i = 0; i < nin; i++) {
-            ndt_decref(spec.broadcast[i]);
-        }
-    }
+    int nout = spec.nout;
+    ndt_apply_spec_clear(&spec);
 
-    switch (spec.nout) {
+    switch (nout) {
     case 0: Py_RETURN_NONE;
     case 1: return result[0];
     default: {
-        PyObject *tuple = PyTuple_New(spec.nout);
+        PyObject *tuple = PyTuple_New(nout);
         if (tuple == NULL) {
-            clear_objects(result, spec.nout);
+            clear_objects(result, nout);
             return NULL;
         }
-        for (i = 0; i < spec.nout; i++) {
+        for (i = 0; i < nout; i++) {
             PyTuple_SET_ITEM(tuple, i, result[i]);
         }
         return tuple;
