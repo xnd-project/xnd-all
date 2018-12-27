@@ -2149,6 +2149,12 @@ pyxnd_split(PyObject *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
+    if (n < 1 || n > INT32_MAX)  {
+        PyErr_SetString(PyExc_ValueError,
+            "n must be in [1, INT32_MAX]");
+        return NULL;
+    }
+
     if (max != Py_None) {
         long l = PyLong_AsLong(max);
         if (l == -1 && PyErr_Occurred()) {
@@ -2167,7 +2173,7 @@ pyxnd_split(PyObject *self, PyObject *args, PyObject *kwds)
         return seterr(&ctx);
     }
 
-    res = PyList_New(n);
+    res = PyList_New((Py_ssize_t)n);
     if (res == NULL) {
         free_slices(slices, 0, n);
         return NULL;
@@ -2915,8 +2921,9 @@ var_from_shapes(PyObject *lst, const ndt_t *dtype)
     const ndt_t *t;
     ndt_offsets_t *offsets;
     int32_t *ptr;
+    int64_t sum;
     Py_ssize_t len, slen;
-    Py_ssize_t sum, shape;
+    Py_ssize_t shape;
     Py_ssize_t i, k;
     bool opt;
 
