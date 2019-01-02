@@ -417,7 +417,7 @@ class TestOut(unittest.TestCase):
         self.assertEqual(ans, xnd([2, 4, 6]))
 
 
-class TestUnary(unittest.TestCase):
+class TestUnaryCPU(unittest.TestCase):
 
     def test_acos(self):
         a = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
@@ -441,7 +441,32 @@ class TestUnary(unittest.TestCase):
         self.assertRaises(ValueError, fn.sin, x)
 
 
-class TestBinary(unittest.TestCase):
+@unittest.skipIf(cd is None, "test requires cuda")
+class TestUnaryCUDA(unittest.TestCase):
+
+    def test_cos(self):
+        a = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+        b = [math.cos(x) for x in a]
+
+        x = xnd(a, dtype="float64", device="cuda:managed")
+        y = cd.cos(x)
+        self.assertEqual(y, b)
+
+    def test_cos_opt(self):
+        a = [0, 0.1, 0.2, None, 0.4, 0.5, 0.6, None]
+        b = [math.cos(x) if x is not None else None for x in a]
+
+        x = xnd(a, dtype="?float64", device="cuda:managed")
+        y = cd.cos(x)
+        self.assertEqual(y, b)
+
+    def test_inexact_cast(self):
+        a = [0, 1, 2, 3, 4, 5, 6, 7]
+        x = xnd(a, dtype="int64", device="cuda:managed")
+        self.assertRaises(ValueError, cd.sin, x)
+
+
+class TestBinaryCPU(unittest.TestCase):
 
     def test_binary(self):
         for t, u in implemented_sigs["binary"]["default"]:
@@ -488,6 +513,58 @@ class TestBinary(unittest.TestCase):
 
             x = xnd([2, 3, 4, 5, 6, 7, 8, 9], dtype=t.type)
             y = xnd([1, 2, 3, 4, 5, 6, 7, 8], dtype=u.type)
+            z = fn.subtract(x, y)
+            self.assertEqual(z, [1, 1, 1, 1, 1, 1, 1, 1])
+
+
+@unittest.skipIf(cd is None, "test requires cuda")
+class TestBinaryCUDA(unittest.TestCase):
+
+    def test_binary(self):
+        for t, u in implemented_sigs["binary"]["default"]:
+            w = implemented_sigs["binary"]["default"][(t, u)]
+
+            if t.cpu_noimpl() or u.cpu_noimpl():
+                continue
+
+            x = xnd([0, 1, 2, 3, 4, 5, 6, 7], dtype=t.type, device="cuda:managed")
+            y = xnd([1, 2, 3, 4, 5, 6, 7, 8], dtype=u.type, device="cuda:managed")
+            z = fn.add(x, y)
+            self.assertEqual(z, [1, 3, 5, 7, 9, 11, 13, 15])
+
+    def test_add_opt(self):
+        for t, u in implemented_sigs["binary"]["default"]:
+            w = implemented_sigs["binary"]["default"][(t, u)]
+
+            if t.cpu_noimpl() or u.cpu_noimpl():
+                continue
+
+            x = xnd([0, 1, None, 3, 4, 5, 6, 7], dtype="?" + t.type, device="cuda:managed")
+            y = xnd([1, 2, 3, 4, 5, 6, None, 8], dtype="?" + u.type, device="cuda:managed")
+            z = fn.add(x, y)
+            self.assertEqual(z, [1, 3, None, 7, 9, 11, None, 15])
+
+    def test_subtract(self):
+        for t, u in implemented_sigs["binary"]["default"]:
+            w = implemented_sigs["binary"]["default"][(t, u)]
+
+            if t.cpu_noimpl() or u.cpu_noimpl():
+                continue
+
+            x = xnd([2, 3, 4, 5, 6, 7, 8, 9], dtype=t.type, device="cuda:managed")
+            y = xnd([1, 2, 3, 4, 5, 6, 7, 8], dtype=u.type, device="cuda:managed")
+            z = fn.subtract(x, y)
+            self.assertEqual(z, [1, 1, 1, 1, 1, 1, 1, 1])
+
+    def test_multiply(self):
+        for t, u in implemented_sigs["binary"]["default"]:
+            w = implemented_sigs["binary"]["default"][(t, u)]
+
+            if t.cpu_noimpl() or u.cpu_noimpl():
+                continue
+
+            x = xnd([2, 3, 4, 5, 6, 7, 8, 9], dtype=t.type, device="cuda:managed")
+            y = xnd([1, 2, 3, 4, 5, 6, 7, 8], dtype=u.type, device="cuda:managed")
             z = fn.subtract(x, y)
             self.assertEqual(z, [1, 1, 1, 1, 1, 1, 1, 1])
 
@@ -1021,8 +1098,10 @@ ALL_TESTS = [
   TestPdist,
   TestNumba,
   TestOut,
-  TestUnary,
-  TestBinary,
+  TestUnaryCPU,
+  TestUnaryCUDA,
+  TestBinaryCPU,
+  TestBinaryCUDA,
   TestBitwise,
   TestFunctions,
   TestCudaManaged,
