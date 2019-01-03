@@ -733,6 +733,33 @@ class TestFunctions(unittest.TestCase):
               (f, a, t, b, u, w, z1, z2)
         self.assert_equal(f, v1, v2, w, msg)
 
+    def check_binary_mv(self, f, a, t, b, u, v, w, mod=fn, dev=None):
+
+        x1 = self.create_xnd(a, t, dev)
+        if x1 is None:
+            return
+
+        y1 = self.create_xnd(b, u, dev)
+        if y1 is None:
+            return
+
+        c1, d1 = getattr(mod, f)(x1, y1)
+        self.assertEqual(str(c1[0].type), v.type)
+        self.assertEqual(str(d1[0].type), w.type)
+        cv1 = c1[0].value
+        dv1 = d1[0].value
+
+        x2 = np.array([a], dtype=t.type)
+        y2 = np.array([b], dtype=u.type)
+        c2, d2 = getattr(np, f)(x2, y2)
+        cv2 = c2[0]
+        dv2 = d2[0]
+
+        msg = "%s(%s : %s, %s : %s) -> %s, %s    xnd: %s    np: %s" % \
+              (f, a, t, b, u, v, w, (cv1, dv1), (cv2, dv2))
+        self.assert_equal(f, cv1, cv2, v, msg)
+        self.assert_equal(f, dv2, dv2, v, msg)
+
     @unittest.skipIf(sys.platform == "darwin", "complex trigonometry errors too large")
     @unittest.skipIf(sys.platform == "win32" and ARCH == "32bit", "complex trigonometry errors too large")
     def test_unary_cpu(self):
@@ -778,10 +805,29 @@ class TestFunctions(unittest.TestCase):
 
                     for a in t.testcases():
                         for b in u.testcases():
-                            if t.cpu_noimpl() or u.cpu_noimpl() or w.cpu_noimpl():
+                            if t.cpu_nokern(f) or u.cpu_nokern(f) or w.cpu_nokern(f):
+                                self.check_binary_type_error(f, a, t, b, u)
+                            elif t.cpu_noimpl(f) or u.cpu_noimpl(f) or w.cpu_noimpl(f):
                                 self.check_binary_not_implemented(f, a, t, b, u)
                             else:
                                 self.check_binary(f, a, t, b, u, w)
+
+    def test_binary_mv_cpu(self):
+        skip_if(SKIP_LONG, "use --long argument to enable these tests")
+
+        print("\n", flush=True)
+
+        for f in functions["binary_mv"]["default"]:
+            print("testing %s ..." % f, flush=True)
+
+            for t, u in implemented_sigs["binary_mv"]["default"]:
+                v, w = implemented_sigs["binary_mv"]["default"][(t, u)]
+
+                print("    %s, %s -> %s, %s" % (t, u, v, w), flush=True)
+
+                for a in t.testcases():
+                    for b in u.testcases():
+                        self.check_binary_mv(f, a, t, b, u, v, w)
 
     @unittest.skipIf(cd is None, "test requires cuda")
     def test_unary_cuda(self):
@@ -832,18 +878,38 @@ class TestFunctions(unittest.TestCase):
 
                     for a in t.testcases():
                         for b in u.testcases():
-                            if t.cuda_noimpl() or u.cuda_noimpl() or w.cuda_noimpl():
+                            if t.cuda_nokern(f) or u.cuda_nokern(f) or w.cuda_nokern(f):
+                                self.check_binary_type_error(f, a, t, b, u,
+                                    mod=cd, dev="cuda:managed")
+                            elif t.type == "complex32" or u.type == "complex32" or w.cuda_noimpl(f):
                                 self.check_binary_not_implemented(f, a, t, b, u,
                                     mod=cd, dev="cuda:managed")
                             else:
                                 self.check_binary(f, a, t, b, u, w,
                                     mod=cd, dev="cuda:managed")
 
+    def test_binary_mv_cuda(self):
+        skip_if(SKIP_LONG, "use --long argument to enable these tests")
+
+        print("\n", flush=True)
+
+        for f in functions["binary_mv"]["default"]:
+            print("testing %s ..." % f, flush=True)
+
+            for t, u in implemented_sigs["binary_mv"]["default"]:
+                v, w = implemented_sigs["binary_mv"]["default"][(t, u)]
+
+                print("    %s, %s -> %s, %s" % (t, u, v, w), flush=True)
+
+                for a in t.testcases():
+                    for b in u.testcases():
+                        self.check_binary_mv(f, a, t, b, u, v, w, mod=cd,
+                                             dev="cuda:managed")
+
     def test_divide_inexact_cpu(self):
 
         t = Tint("uint8")
         u = Tint("uint64")
-        w = Tfloat("float64")
 
         a = next(t.testcases())
         b = next(u.testcases())
@@ -854,12 +920,30 @@ class TestFunctions(unittest.TestCase):
 
         t = Tint("uint8")
         u = Tint("uint64")
-        w = Tfloat("float64")
 
         a = next(t.testcases())
         b = next(u.testcases())
         self.check_binary_type_error("divide", a, t, b, u,
                                      mod=cd, dev="cuda:managed")
+
+    def test_divmod_type_error_cpu(self):
+
+        t = Tint("uint8")
+        u = Tint("uint64")
+
+        a = next(t.testcases())
+        b = next(u.testcases())
+        self.check_binary_type_error("divmod", a, t, b, u)
+
+    @unittest.skipIf(cd is None, "test requires cuda")
+    def test_divmod_type_error_cuda(self):
+
+        t = Tint("uint8")
+        u = Tint("uint64")
+
+        a = next(t.testcases())
+        b = next(u.testcases())
+        self.check_binary_type_error("divmod", a, t, b, u)
 
 
 @unittest.skipIf(cd is None, "test requires cuda")
