@@ -20,7 +20,7 @@ All builtin functions
 
    >>> from gumath import functions as fn
    >>> dir(fn)
-   ['__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'bitwise_and', 'bitwise_or', 'bitwise_xor', 'cbrt', 'ceil', 'copy', 'cos', 'cosh', 'divide', 'erf', 'erfc', 'exp', 'exp2', 'expm1', 'fabs', 'floor', 'greater', 'greater_equal', 'invert', 'less', 'less_equal', 'lgamma', 'log', 'log10', 'log1p', 'log2', 'logb', 'multiply', 'nearbyint', 'negative', 'round', 'sin', 'sinh', 'sqrt', 'subtract', 'tan', 'tanh', 'tgamma', 'trunc']
+   ['__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'bitwise_and', 'bitwise_or', 'bitwise_xor', 'cbrt', 'ceil', 'copy', 'cos', 'cosh', 'divide', 'divmod', 'erf', 'erfc', 'exp', 'exp2', 'expm1', 'fabs', 'floor', 'floor_divide', 'greater', 'greater_equal', 'invert', 'less', 'less_equal', 'lgamma', 'log', 'log10', 'log1p', 'log2', 'logb', 'multiply', 'nearbyint', 'negative', 'remainder', 'round', 'sin', 'sinh', 'sqrt', 'subtract', 'tan', 'tanh', 'tgamma', 'trunc']
 
 Unary functions
 ---------------
