@@ -700,6 +700,7 @@ NDTYPES_API int ndt_is_big_endian(const ndt_t *t);
 NDTYPES_API const ndt_t *ndt_copy(const ndt_t *t, ndt_context_t *ctx);
 NDTYPES_API const ndt_t *ndt_copy_contiguous(const ndt_t *t, int64_t linear_index, ndt_context_t *ctx);
 NDTYPES_API const ndt_t *ndt_copy_contiguous_dtype(const ndt_t *t, const ndt_t *dtype, int64_t linear_index, ndt_context_t *ctx);
+NDTYPES_API const ndt_t *ndt_copy_contiguous_at(const ndt_t *t, int n, const ndt_t *dtype, ndt_context_t *ctx);
 NDTYPES_API const ndt_t *ndt_copy_abstract_var_dtype(const ndt_t *t, const ndt_t *dtype, ndt_context_t *ctx);
 
 NDTYPES_API const ndt_t *ndt_convert_to_var_elem(const ndt_t *t, const ndt_t *type, int64_t index, ndt_context_t *ctx);
@@ -712,6 +713,9 @@ NDTYPES_API int ndt_typecheck(ndt_apply_spec_t *spec, const ndt_t *sig,
                               const int nin, const int nout, bool check_broadcast,
                               const ndt_constraint_t *c, const void *args,
                               ndt_context_t *ctx);
+NDTYPES_API int ndt_fast_unary_fixed_typecheck(ndt_apply_spec_t *spec, const ndt_t *sig,
+                                               const ndt_t *types[], const int nin, const int nout,
+                                               const bool check_broadcast, ndt_context_t *ctx);
 NDTYPES_API int ndt_fast_binary_fixed_typecheck(ndt_apply_spec_t *spec, const ndt_t *sig,
                                                 const ndt_t *types[], const int nin, const int nout,
                                                 const bool check_broadcast, ndt_context_t *ctx);
