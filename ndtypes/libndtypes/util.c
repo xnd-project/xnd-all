@@ -501,6 +501,8 @@ ndt_apply_flags_as_string(const ndt_apply_spec_t *spec)
     case ES|C|F|S|X: return "OptS|C|Fortran|Strided|Xnd";
     case EC|ES|C|S|X: return "OptC|OptS|C|Strided|Xnd";
     case EC|ES|C|F|S|X: return "OptC|OptS|C|Fortran|Strided|Xnd";
+    case EZ|EC|ES|C|F|S|X: return "OptZ|OptC|OptS|C|Fortran|Strided|Xnd";
+    case EZ|EC|ES|C|S|X: return "OptZ|OptC|OptS|C|Strided|Xnd";
     case EZ|ES|C|S|X: return "OptZ|OptS|C|Strided|Xnd";
     case EZ|ES|C|F|S|X: return "OptZ|OptS|C|Fortran|Strided|Xnd";
 
@@ -582,9 +584,9 @@ check_c(uint32_t flags, ndt_ndarray_t *x, int outer)
     else if (x->ndim > inner) {
         if (shape[-1] > 1 && steps[-1] != step) {
             flags &= ~NDT_EXT_C;
-        }
-        if (steps[-1] != 0) {
-            return flags &= ~NDT_EXT_ZERO;
+            if (steps[-1] != 0) {
+                flags &= ~NDT_EXT_ZERO;
+            }
         }
     }
 
