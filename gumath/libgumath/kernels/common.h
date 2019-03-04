@@ -81,22 +81,25 @@ get_bitmap1D(const xnd_t *x)
     return ndt_is_optional(ndt_dtype(t)) ? x->bitmap.data : NULL;
 }
 
-static inline int
+static inline bool
 is_valid(const uint8_t *data, int64_t n)
 {
-    return data[n / 8] & ((uint8_t)1 << (n % 8));
+    int64_t pos = n / 8;
+    int64_t shift = n % 8;
+    uint8_t mask = (uint8_t)1 << shift;;
+
+    return data[pos] & mask;
 }
 
 static inline void
-set_valid(uint8_t *data, int64_t n)
+set_bit(uint8_t *data, int64_t n, bool x)
 {
-    data[n / 8] |= ((uint8_t)1 << (n % 8));
-}
+    int64_t pos = n / 8;
+    int64_t shift = n % 8;
+    uint8_t dmask = ((uint8_t)1) << shift;
+    uint8_t xmask = ((uint8_t)x) << shift;
 
-static inline void
-set_na(uint8_t *data, int64_t n)
-{
-    data[n / 8] &= ~((uint8_t)1 << (n % 8));
+    data[pos] ^= ((data[pos] & dmask) ^ xmask);
 }
 
 static inline int64_t
@@ -115,12 +118,12 @@ linear_index1D(const xnd_t *x, const int64_t i)
 /* LOCAL SCOPE */
 NDT_PRAGMA(NDT_HIDE_SYMBOLS_START)
 
-void unary_update_bitmap1D(xnd_t stack[]);
-void unary_reduce_bitmap1D(xnd_t stack[]);
-void unary_update_bitmap(xnd_t stack[]);
+void unary_update_bitmap_1D_S(xnd_t stack[]);
+void unary_reduce_bitmap_1D_S(xnd_t stack[]);
+void unary_update_bitmap_0D(xnd_t stack[]);
 
-void binary_update_bitmap1D(xnd_t stack[]);
-void binary_update_bitmap(xnd_t stack[]);
+void binary_update_bitmap_1D_S(xnd_t stack[]);
+void binary_update_bitmap_0D(xnd_t stack[]);
 
 const gm_kernel_set_t *cpu_unary_typecheck(int (*kernel_location)(const ndt_t *, const ndt_t *, ndt_context_t *),
                                            ndt_apply_spec_t *spec, const gm_func_t *f, const ndt_t *types[],
