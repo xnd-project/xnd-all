@@ -34,6 +34,7 @@
 import sys
 import os
 import subprocess
+import argparse
 from shutil import copy2
 from glob import glob
 
@@ -42,6 +43,14 @@ try:
     SPHINX_BUILD = "sphinx.cmd.build"
 except:
     SPHINX_BUILD = "sphinx"
+
+
+# Pre-parse and remove the '-j' argument from sys.argv.
+parser = argparse.ArgumentParser()
+parser.add_argument('-j', default=None)
+values, rest = parser.parse_known_args()
+PARALLEL = values.j
+sys.argv = sys.argv[:1] + rest
 
 
 XND_ALL = ["ndtypes", "xnd", "gumath", "xndtools"]
@@ -82,13 +91,15 @@ def copy_tests():
 if len(sys.argv) != 2:
     err_exit()
 
+parallel = "-j%d" % int(PARALLEL) if PARALLEL else ""
+
 if sys.argv[1] == "install":
     for lib in XND_ALL:
         os.chdir(lib)
         if lib == "xndtools":
             os.system('"%s" setup.py install --single-version-externally-managed --root=/' % sys.executable)
         else:
-            os.system('"%s" setup.py install' % sys.executable)
+            os.system('"%s" setup.py install %s' % (sys.executable, parallel))
         os.chdir("..")
 
     copy_tests()
@@ -104,7 +115,7 @@ elif sys.argv[1] == "develop":
             if ret != 0:
                 sys.exit(ret)
         else:
-            os.system('"%s" setup.py install --local=%s' % (sys.executable, installdir))
+            os.system('"%s" setup.py install %s --local=%s' % (sys.executable, parallel, installdir))
         os.chdir("..")
 
     copy_tests()
