@@ -85,7 +85,10 @@ if len(sys.argv) != 2:
 if sys.argv[1] == "install":
     for lib in XND_ALL:
         os.chdir(lib)
-        os.system('"%s" setup.py install' % sys.executable)
+        if lib == "xndtools":
+            os.system('"%s" setup.py install --single-version-externally-managed --root=/' % sys.executable)
+        else:
+            os.system('"%s" setup.py install' % sys.executable)
         os.chdir("..")
 
     copy_tests()
