@@ -9,20 +9,22 @@
 Installation
 ============
 
+------------
 From Source
------------
+------------
 
-Clone the source for all xnd related libraries from the `Github repo`_.
+Clone the `xnd-all repo`_, cd into the repo and install.
 
-.. code-block:: console
+.. code-block::
 
-    $ git clone git@github.com:plures/xnd-all.git
+    $ git clone https://github.com/plures/xnd-all.git
+    $ cd xnd-all
+    $ python3 setup.py install
 
-From inside xnd-all repo:
 
-.. code-block:: console
 
-    $ ./configure
-    $ make install
-    $ make check
-    $ python setup.py install
+
+
+
+
+_`xnd-all repo` https://github.com/plures/xnd-all.git
