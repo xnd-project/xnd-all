@@ -1,48 +1,73 @@
 .. meta::
    :robots: index, follow
    :description: xnd-all documentation
-   :keywords:
+   :keywords: xnd, installation
 
-.. sectionauthor:: Andrew Fulton
+.. sectionauthor:: Andrew Fulton <andrewfulton9 at gmail.com>
 
 ============
 Installation
 ============
 
-===============
 From Source
-===============
+============
 
-Requirements (libndtypes)
-=========================
+Prerequisites
+--------------
 
+Python2 is not supported. If not already present, install the Python3
+development packages:
 
-Get ndtypes
------------
+.. code-block:: sh
 
-.. code-block::
+   # Debian, Ubuntu:
+   sudo apt-get install gcc make
+   sudo apt-get install python3-dev
+
+   # Fedora, RedHat:
+   sudo yum install gcc make
+   sudo yum install python3-devel
+
+   # openSUSE:
+   sudo zypper install gcc make
+   sudo zypper install python3-devel
+
+   # BSD:
+   # You know what to do.
+
+   # Mac OS X:
+   # Install Xcode and Python 3 headers.
+
+Clone the `xnd GitHub repo <https://github.com/plures/xnd/>`_.
+
+.. code-block:: console
+
+    $ git clone https://github.com/plures/xnd.git
+    $ cd xnd
+
+Requirements
+-------------
+
+`ndtypes <https://github.com/plures/ndtypes>`_
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This builds libndtypes and copies the ndtypes Python package into the Python directory
+
+.. code-block:: console
 
     $ git clone https://github.com/plures/ndtypes.git
-
-For building the xnd Python module
-----------------------------------
-
-This also builds libndtypes and copies the ndtypes Python package into the python directory next to the xnd package.
-
-.. code-block::
-
     $ cd ndtypes
     $ python3 setup.py install
     $ cd ..
 
 Python Installation (Unix/Windows)
-================================================
+-----------------------------------
 
 .. code-block:: console
 
     $ python3 setup.py install
 
-================
+
 Conda Install
 ================
 
@@ -50,7 +75,7 @@ Conda Install
 
     $ conda install -c xnd/label/dev xnd
 
-=============
+
 Pip Install
 =============
 

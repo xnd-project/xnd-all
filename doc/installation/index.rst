@@ -1,9 +1,10 @@
 .. meta::
    :robots: index, follow
    :description: xnd-all documentation
-   :keywords:
+   :keywords: xnd-all, installation
 
-.. sectionauthor:: Andrew Fulton
+.. sectionauthor:: Andrew Fulton <andrewfulton9 at gmail.com>
+
 
 ============
 Installation
@@ -13,18 +14,10 @@ Installation
 From Source
 ------------
 
-Clone the `xnd-all repo`_, cd into the repo and install.
+Clone the `xnd-all repo <https://github.com/plures/xnd-all.git>`_, cd into the repo and install.
 
-.. code-block::
+.. code-block:: console
 
     $ git clone https://github.com/plures/xnd-all.git
     $ cd xnd-all
     $ python3 setup.py install
-
-
-
-
-
-
-
-_`xnd-all repo` https://github.com/plures/xnd-all.git

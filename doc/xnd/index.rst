@@ -24,6 +24,7 @@ Importing PEP-3118 buffers is supported.
 .. toctree::
    :maxdepth: 1
 
+   Installation.rst
    types.rst
    align-pack.rst
    buffer-protocol.rst
