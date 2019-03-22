@@ -1,5 +1,7 @@
 sudo: required
 
+dist: xenial
+
 language: python
 python:
   - 3.6
@@ -20,11 +22,11 @@ matrix:
         - make install
         - make check
         - git clean -xdf
-        - python3 setup.py develop
+        - python3 setup.py develop -j2
         - python3 setup.py test
         - python3 setup.py doctest
         - git clean -xdf
-        - python3 setup.py install
+        - python3 setup.py install -j2
         - python3 setup.py test
         - python3 setup.py doctest
 
@@ -39,11 +41,11 @@ matrix:
         - make install
         - make memcheck
         - git clean -xdf
-        - python3 setup.py develop
+        - python3 setup.py develop -j2
         - python3 setup.py test
         - python3 setup.py doctest
         - git clean -xdf
-        - python3 setup.py install
+        - python3 setup.py install -j2
         - python3 setup.py test
         - python3 setup.py doctest
 
@@ -59,10 +61,10 @@ matrix:
         - make install
         - make check
         - git clean -xdf
-        - python3 setup.py develop
+        - python3 setup.py develop -j2
         - python3 setup.py test
         - git clean -xdf
-        - python3 setup.py install
+        - python3 setup.py install -j2
         - python3 setup.py test
 
     - compiler: conda

@@ -23,8 +23,8 @@ build_script:
   - "%PYTHON%\\python.exe -m pip install numpy"
   - git clone https://github.com/plures/xnd-all.git
   - cd xnd-all
-  - "%PYTHON%\\python.exe setup.py develop"
+  - "%PYTHON%\\python.exe setup.py develop -j2"
   - "%PYTHON%\\python.exe setup.py test"
   - git clean -xdf
-  - "%PYTHON%\\python.exe setup.py install"
+  - "%PYTHON%\\python.exe setup.py install -j2"
   - "%PYTHON%\\python.exe setup.py test"
