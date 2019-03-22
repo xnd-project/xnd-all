@@ -1,0 +1,319 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta content="index,follow" name="robots" />
+<meta content="xnd container" name="description" />
+<meta content="xnd, alignment, packing" name="keywords" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Alignment and packing &mdash; Plures v0.2.0dev3 documentation</title>
+  
+
+  
+  
+  
+  
+    <link rel="canonical" href="https://xnd.io/xnd/align-pack.html"/>
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Buffer protocol" href="buffer-protocol.html" />
+    <link rel="prev" title="Types" href="types.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/xndlogo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v0.2.0dev3
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../libxnd/index.html">libxnd</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">xnd</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">Types</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Alignment and packing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tuples-and-records">Tuples and records</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#field-alignment">Field alignment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#field-packing">Field packing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#struct-packing">Struct packing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#array-alignment">Array alignment</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="buffer-protocol.html">Buffer protocol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../libgumath/index.html">libgumath</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../gumath/index.html">gumath</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xndtools/index.html">xndtools</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../releases/index.html">Releases</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Plures</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">xnd</a> &raquo;</li>
+        
+      <li>Alignment and packing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="alignment-and-packing">
+<h1>Alignment and packing<a class="headerlink" href="#alignment-and-packing" title="Permalink to this headline">¶</a></h1>
+<p>The xnd memory allocators support explicit alignment.  Alignment is specified
+in the types.</p>
+<div class="section" id="tuples-and-records">
+<h2>Tuples and records<a class="headerlink" href="#tuples-and-records" title="Permalink to this headline">¶</a></h2>
+<p>Tuples and records have the <em>align</em> and <em>pack</em> keywords that have the same
+purpose as gcc’s <em>aligned</em> and <em>packed</em> struct attributes.</p>
+<div class="section" id="field-alignment">
+<h3>Field alignment<a class="headerlink" href="#field-alignment" title="Permalink to this headline">¶</a></h3>
+<p>The <em>align</em> keyword can be used to specify an alignment that is greater
+than the natural alignment of a field:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xnd</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;(uint8, uint64 |align=32|, uint64)&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">align</span>
+<span class="go">32</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">datasize</span>
+<span class="go">64</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="field-packing">
+<h3>Field packing<a class="headerlink" href="#field-packing" title="Permalink to this headline">¶</a></h3>
+<p>The <em>pack</em> keyword can be used to specify an alignment that is smaller
+than the natural alignment of a field:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;(uint8, uint64 |pack=2|, uint64)&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">align</span>
+<span class="go">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">datasize</span>
+<span class="go">24</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="struct-packing">
+<h3>Struct packing<a class="headerlink" href="#struct-packing" title="Permalink to this headline">¶</a></h3>
+<p>The <em>pack</em> and <em>align</em> keywords can be applied to the entire struct:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;(uint8, uint64, uint64, pack=1)&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">align</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">datasize</span>
+<span class="go">17</span>
+</pre></div>
+</div>
+<p>Individual field and struct directives are mutually exclusive:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;2 * (uint8 |align=16|, uint64, pack=1)&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+<span class="gr">ValueError</span>: <span class="n">cannot have &#39;pack&#39; tuple attribute and field attributes</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="array-alignment">
+<h3>Array alignment<a class="headerlink" href="#array-alignment" title="Permalink to this headline">¶</a></h3>
+<p>An array has the same alignment as its elements:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;2 * (uint8, uint64, pack=1)&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">align</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">datasize</span>
+<span class="go">18</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="buffer-protocol.html" class="btn btn-neutral float-right" title="Buffer protocol" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="types.html" class="btn btn-neutral float-left" title="Types" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2018, Plures Project
+      <span class="lastupdated">
+        Last updated on True.
+      </span>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

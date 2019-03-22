@@ -1,0 +1,781 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta content="index,follow" name="robots" />
+<meta content="xnd container" name="description" />
+<meta content="xnd, types, examples" name="keywords" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Types &mdash; Plures v0.2.0dev3 documentation</title>
+  
+
+  
+  
+  
+  
+    <link rel="canonical" href="https://xnd.io/xnd/types.html"/>
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Alignment and packing" href="align-pack.html" />
+    <link rel="prev" title="Installation" href="Installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/xndlogo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v0.2.0dev3
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../libxnd/index.html">libxnd</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">xnd</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#type-inference">Type inference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#fixed-arrays">Fixed arrays</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ragged-arrays">Ragged arrays</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#records-structs">Records (structs)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tuples">Tuples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nested-arrays-in-structs">Nested arrays in structs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#optional-data-missing-values">Optional data (missing values)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#categorical-data">Categorical data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#explicit-types">Explicit types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#different-types-are-intended">Different types are intended</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#all-supported-types">All supported types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Fixed arrays</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fortran-order">Fortran order</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Ragged arrays</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Tuples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#records">Records</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#record-of-arrays">Record of arrays</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#constructors">Constructors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#categorical">Categorical</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fixed-string">Fixed String</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fixed-bytes">Fixed Bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#string">String</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bytes">Bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#primitive-types">Primitive types</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="align-pack.html">Alignment and packing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buffer-protocol.html">Buffer protocol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../libgumath/index.html">libgumath</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../gumath/index.html">gumath</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xndtools/index.html">xndtools</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../releases/index.html">Releases</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Plures</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">xnd</a> &raquo;</li>
+        
+      <li>Types</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="types">
+<h1>Types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h1>
+<p>The xnd object is a container that maps a wide range of Python values directly
+to memory.  xnd unpacks complex types of arbitrary nesting depth to a single
+memory block.</p>
+<p>Pointers only occur in explicit pointer types like <em>Ref</em> (reference), <em>Bytes</em>
+and <em>String</em>, but not in the general case.</p>
+<div class="section" id="type-inference">
+<h2>Type inference<a class="headerlink" href="#type-inference" title="Permalink to this headline">¶</a></h2>
+<p>If no explicit type is given, xnd supports type inference by assuming
+types for the most common Python values.</p>
+<div class="section" id="fixed-arrays">
+<h3>Fixed arrays<a class="headerlink" href="#fixed-arrays" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xnd</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">xnd([[0, 1, 2], [3, 4, 5]], type=&#39;2 * 3 * int64&#39;)</span>
+</pre></div>
+</div>
+<p>As expected, lists are mapped to ndarrays and integers to int64.  Indexing and
+slicing works the usual way.  For performance reasons these operations return
+zero-copy views whenever possible:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Indexing returns views, even for scalars.</span>
+<span class="go">xnd(1, type=&#39;int64&#39;)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Containers are returned as views.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span>
+<span class="go">xnd([[2, 1, 0], [5, 4, 3]], type=&#39;2 * 3 * int64&#39;)</span>
+</pre></div>
+</div>
+<p>Subarrays are views and properly typed:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">xnd([3, 4, 5], type=&#39;3 * int64&#39;)</span>
+</pre></div>
+</div>
+<p>The representation of large values is abbreviated:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="p">[</span><span class="mi">200</span> <span class="o">*</span> <span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">xnd([[1, 1, 1, 1, 1, 1, 1, 1, 1, ...],</span>
+<span class="go">     [1, 1, 1, 1, 1, 1, 1, 1, 1, ...],</span>
+<span class="go">     [1, 1, 1, 1, 1, 1, 1, 1, 1, ...],</span>
+<span class="go">     [1, 1, 1, 1, 1, 1, 1, 1, 1, ...],</span>
+<span class="go">     [1, 1, 1, 1, 1, 1, 1, 1, 1, ...],</span>
+<span class="go">     [1, 1, 1, 1, 1, 1, 1, 1, 1, ...],</span>
+<span class="go">     [1, 1, 1, 1, 1, 1, 1, 1, 1, ...],</span>
+<span class="go">     [1, 1, 1, 1, 1, 1, 1, 1, 1, ...],</span>
+<span class="go">     [1, 1, 1, 1, 1, 1, 1, 1, 1, ...],</span>
+<span class="go">     ...],</span>
+<span class="go">    type=&#39;10 * 200 * int64&#39;)</span>
+</pre></div>
+</div>
+<p>Values can be accessed in full using the <em>value</em> property:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="mi">11</span> <span class="o">*</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">xnd([1, 1, 1, 1, 1, 1, 1, 1, 1, ...], type=&#39;11 * int64&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]</span>
+</pre></div>
+</div>
+<p>Types can be accessed using the <em>type</em> property:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="mi">11</span> <span class="o">*</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span>
+<span class="go">ndt(&quot;11 * int64&quot;)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ragged-arrays">
+<h3>Ragged arrays<a class="headerlink" href="#ragged-arrays" title="Permalink to this headline">¶</a></h3>
+<p>Ragged arrays are compatible with the Arrow list representation. The data
+is pointer-free, addressing the elements works by having one offset array
+per dimension.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">([[</span><span class="mf">0.1j</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="mi">2j</span><span class="p">,</span> <span class="mi">4</span><span class="o">+</span><span class="mi">5j</span><span class="p">,</span> <span class="mi">10j</span><span class="p">]])</span>
+<span class="go">xnd([[0.1j], [(3+2j), (4+5j), 10j]], type=&#39;var * var * complex128&#39;)</span>
+</pre></div>
+</div>
+<p>Indexing and slicing works as usual, returning properly typed views or
+values in the case of scalars:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">([[</span><span class="mf">0.1j</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="mi">2j</span><span class="p">,</span> <span class="mi">4</span><span class="o">+</span><span class="mi">5j</span><span class="p">,</span> <span class="mi">10j</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="go">xnd(10j, type=&#39;complex128&#39;)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">xnd([(3+2j), (4+5j), 10j], type=&#39;var * complex128&#39;)</span>
+</pre></div>
+</div>
+<p>Eliminating dimensions through mixed slicing and indexing is not supported
+because it would require copying and adjusting potentially huge offset arrays:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+<span class="gr">IndexError</span>: <span class="n">mixed indexing and slicing is not supported for var dimensions</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="records-structs">
+<h3>Records (structs)<a class="headerlink" href="#records-structs" title="Permalink to this headline">¶</a></h3>
+<p>From Python 3.6 on, dicts retain their order, so they can be used directly
+for initializing C structs.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mf">10.2</span><span class="p">})</span>
+<span class="go">xnd({&#39;a&#39;: &#39;foo&#39;, &#39;b&#39;: 10.2}, type=&#39;{a : string, b : float64}&#39;)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="tuples">
+<h3>Tuples<a class="headerlink" href="#tuples" title="Permalink to this headline">¶</a></h3>
+<p>Python tuples are directly translated to the libndtypes tuple type:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">((</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">]))</span>
+<span class="go">xnd((&#39;foo&#39;, b&#39;bar&#39;, [None, 10.0, 20.0]), type=&#39;(string, bytes, 3 * ?float64)&#39;)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nested-arrays-in-structs">
+<h3>Nested arrays in structs<a class="headerlink" href="#nested-arrays-in-structs" title="Permalink to this headline">¶</a></h3>
+<p>xnd seamlessly supports nested values of arbitrary depth:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lst</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;John&#39;</span><span class="p">,</span> <span class="s1">&#39;internet_points&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]},</span>
+<span class="gp">... </span>       <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Jane&#39;</span><span class="p">,</span> <span class="s1">&#39;internet_points&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]}]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+<span class="go">xnd([{&#39;name&#39;: &#39;John&#39;, &#39;internet_points&#39;: [1, 2, 3]}, {&#39;name&#39;: &#39;Jane&#39;, &#39;internet_points&#39;: [4, 5, 6]}],</span>
+<span class="go">    type=&#39;2 * {name : string, internet_points : 3 * int64}&#39;)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="optional-data-missing-values">
+<h3>Optional data (missing values)<a class="headerlink" href="#optional-data-missing-values" title="Permalink to this headline">¶</a></h3>
+<p>Optional data is currently specified using <em>None</em>.  It is under debate if
+a separate <em>NA</em> singleton object would be more suitable.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lst</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+<span class="go">xnd([0, 1, None, 2, 3, None, 5, 10], type=&#39;8 * ?int64&#39;)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="categorical-data">
+<h3>Categorical data<a class="headerlink" href="#categorical-data" title="Permalink to this headline">¶</a></h3>
+<p>Type inference would be ambiguous, so it cannot work directly. xnd supports
+the <em>levels</em> argument that is internally translated to the type.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">levels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;January&#39;</span><span class="p">,</span> <span class="s1">&#39;August&#39;</span><span class="p">,</span> <span class="s1">&#39;December&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">([</span><span class="s1">&#39;January&#39;</span><span class="p">,</span> <span class="s1">&#39;January&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;December&#39;</span><span class="p">,</span> <span class="s1">&#39;August&#39;</span><span class="p">,</span> <span class="s1">&#39;December&#39;</span><span class="p">,</span> <span class="s1">&#39;December&#39;</span><span class="p">],</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[&#39;January&#39;, &#39;January&#39;, None, &#39;December&#39;, &#39;August&#39;, &#39;December&#39;, &#39;December&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span>
+<span class="go">ndt(&quot;7 * categorical(&#39;January&#39;, &#39;August&#39;, &#39;December&#39;, NA)&quot;)</span>
+</pre></div>
+</div>
+<p>The above is equivalent to specifying the type directly:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ndtypes</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;7 * categorical(&#39;January&#39;, &#39;August&#39;, &#39;December&#39;, NA)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">([</span><span class="s1">&#39;January&#39;</span><span class="p">,</span> <span class="s1">&#39;January&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;December&#39;</span><span class="p">,</span> <span class="s1">&#39;August&#39;</span><span class="p">,</span> <span class="s1">&#39;December&#39;</span><span class="p">,</span> <span class="s1">&#39;December&#39;</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[&#39;January&#39;, &#39;January&#39;, None, &#39;December&#39;, &#39;August&#39;, &#39;December&#39;, &#39;December&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span>
+<span class="go">ndt(&quot;7 * categorical(&#39;January&#39;, &#39;August&#39;, &#39;December&#39;, NA)&quot;)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="explicit-types">
+<h2>Explicit types<a class="headerlink" href="#explicit-types" title="Permalink to this headline">¶</a></h2>
+<p>While type inference is well-defined, it necessarily makes assumptions about
+the programmer’s intent.</p>
+<p>There are two cases where types should be given:</p>
+<div class="section" id="different-types-are-intended">
+<h3>Different types are intended<a class="headerlink" href="#different-types-are-intended" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]],</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;2 * 3 * uint8&quot;</span><span class="p">)</span>
+<span class="go">xnd([[0, 1, 2], [3, 4, 5]], type=&#39;2 * 3 * uint8&#39;)</span>
+</pre></div>
+</div>
+<p>Here, type inference would deduce <code class="xref c c-macro docutils literal notranslate"><span class="pre">int64</span></code>, so <code class="xref c c-macro docutils literal notranslate"><span class="pre">uint8</span></code> needs
+to be passed explicitly.</p>
+</div>
+</div>
+<div class="section" id="all-supported-types">
+<h2>All supported types<a class="headerlink" href="#all-supported-types" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>Fixed arrays<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Fixed arrays are similar to NumPy’s ndarray. One difference is that internally
+xnd uses steps instead of strides. One step is the amount of indices required
+to move the linear index from one dimension element to the next.</p>
+<p>This facilitates optional data, whose bitmaps need to be addressed by the
+linear index.  The equation <em>stride = step * itemsize</em> always holds.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">([[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="mi">3</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">4</span><span class="p">,</span> <span class="bp">None</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]]])</span>
+<span class="go">xnd([[[1, 2], [None, 3]], [[4, None], [5, 6]]], type=&#39;2 * 2 * 2 * ?int64&#39;)</span>
+</pre></div>
+</div>
+<p>This is a fixed array with optional data.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="mi">3j</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mf">5.0</span><span class="p">,</span><span class="mi">6j</span><span class="p">)])</span>
+<span class="go">xnd([(1, 2.0, 3j), (4, 5.0, 6j)], type=&#39;2 * (int64, float64, complex128)&#39;)</span>
+</pre></div>
+</div>
+<p>An array with tuple elements.</p>
+</div>
+<div class="section" id="fortran-order">
+<h3>Fortran order<a class="headerlink" href="#fortran-order" title="Permalink to this headline">¶</a></h3>
+<p>Fortran order is specified by prefixing the dimensions with an exclamation mark:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lst</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;!2 * 3 * uint16&#39;</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(2, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">strides</span>
+<span class="go">(2, 4)</span>
+</pre></div>
+</div>
+<p>Alternatively, steps can be passed as arguments to the fixed dimension type:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ndtypes</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lst</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;fixed(shape=2, step=1) * fixed(shape=3, step=2) * uint16&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(2, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">strides</span>
+<span class="go">(2, 4)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>Ragged arrays<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>Ragged arrays with explicit types are easiest to construct using the <em>dtype</em>
+argument to the xnd constructor.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lst</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int32&quot;</span><span class="p">)</span>
+<span class="go">xnd([[0], [1, 2], [3, 4, 5]], type=&#39;var * var * int32&#39;)</span>
+</pre></div>
+</div>
+<p>Alternatively, offsets can be passed as arguments to the var dimension type:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ndtypes</span> <span class="kn">import</span> <span class="n">ndt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;var(offsets=[0,3]) * var(offsets=[0,1,3,6]) * int32&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+<span class="go">xnd([[0], [1, 2], [3, 4, 5]], type=&#39;var * var * int32&#39;)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h3>Tuples<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>In memory, tuples are the same as C structs.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">((</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+<span class="go">xnd((&#39;foo&#39;, 1.0), type=&#39;(string, float64)&#39;)</span>
+</pre></div>
+</div>
+<p>Indexing works the same as for arrays:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">((</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">xnd(&#39;foo&#39;, type=&#39;string&#39;)</span>
+</pre></div>
+</div>
+<p>Nested tuples are more general than ragged arrays. They can a) hold different
+data types and b) the trees they represent may be unbalanced.</p>
+<p>They do not allow slicing though and are probably less efficient.</p>
+<p>This is an example of an unbalanced tree that cannot be represented as a
+ragged array:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">unbalanced_tree</span> <span class="o">=</span> <span class="p">(((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">3.0</span><span class="p">)),</span> <span class="mf">4.0</span><span class="p">,</span> <span class="p">((</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">),</span> <span class="p">()))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="n">unbalanced_tree</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">(((1.0, 2.0), 3.0), 4.0, ((5.0, 6.0, 7.0), ()))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span>
+<span class="go">ndt(&quot;(((float64, float64), float64), float64, ((float64, float64, float64), ()))&quot;)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">xnd(((1.0, 2.0), 3.0), type=&#39;((float64, float64), float64)&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">xnd((1.0, 2.0), type=&#39;(float64, float64)&#39;)</span>
+</pre></div>
+</div>
+<p>Note that the data in the above tree example is packed into a single contiguous
+memory block.</p>
+</div>
+<div class="section" id="records">
+<h3>Records<a class="headerlink" href="#records" title="Permalink to this headline">¶</a></h3>
+<p>In memory, records are C structs. The field names are only stored in the type.</p>
+<p>The following examples use Python-3.6, which keeps the dict initialization
+order.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="sa">b</span><span class="s1">&#39;123&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="o">+</span><span class="mi">3j</span><span class="p">}})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">{&#39;a&#39;: b&#39;123&#39;, &#39;b&#39;: {&#39;x&#39;: 1.2, &#39;y&#39;: (100+3j)}}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span>
+<span class="go">ndt(&quot;{a : bytes, b : {x : float64, y : complex128}}&quot;)</span>
+</pre></div>
+</div>
+<p>Indexing works the same as for arrays. Additionally, fields can be indexed
+by name:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">xnd(b&#39;123&#39;, type=&#39;bytes&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
+<span class="go">xnd(b&#39;123&#39;, type=&#39;bytes&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
+<span class="go">xnd({&#39;x&#39;: 1.2, &#39;y&#39;: (100+3j)}, type=&#39;{x : float64, y : complex128}&#39;)</span>
+</pre></div>
+</div>
+<p>The nesting depth is arbitrary.  In the following example, the data – except
+for strings, which are pointers – is packed into a single contiguous memory
+block:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>  <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1001</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;cyclotron&quot;</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="mf">5998321.99</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;connoisseur&quot;</span><span class="p">,</span> <span class="s2">&quot;luxury&quot;</span><span class="p">],</span>
+<span class="gp">... </span>  <span class="s2">&quot;stock&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;warehouse&quot;</span><span class="p">:</span> <span class="mi">722</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;retail&quot;</span><span class="p">:</span> <span class="mi">20</span>
+<span class="gp">... </span>  <span class="p">}</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="go">{&#39;id&#39;: 1001,</span>
+<span class="go"> &#39;name&#39;: &#39;cyclotron&#39;,</span>
+<span class="go"> &#39;price&#39;: 5998321.99,</span>
+<span class="go"> &#39;stock&#39;: {&#39;retail&#39;: 20, &#39;warehouse&#39;: 722},</span>
+<span class="go"> &#39;tags&#39;: [&#39;connoisseur&#39;, &#39;luxury&#39;]}</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">pprint</span><span class="p">()</span>
+<span class="go">{</span>
+<span class="go">  id : int64,</span>
+<span class="go">  name : string,</span>
+<span class="go">  price : float64,</span>
+<span class="go">  tags : 2 * string,</span>
+<span class="go">  stock : {</span>
+<span class="go">    warehouse : int64,</span>
+<span class="go">    retail : int64</span>
+<span class="go">  }</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<p>Strings can be embedded into the array by specifying the fixed string type.
+In this case, the memory block is pointer-free.</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ndtypes</span> <span class="kn">import</span> <span class="n">ndt</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="gp">... </span><span class="s2">  { id : int64,</span>
+<span class="gp">... </span><span class="s2">    name : fixed_string(30),</span>
+<span class="gp">... </span><span class="s2">    price : float64,</span>
+<span class="gp">... </span><span class="s2">    tags : 2 * fixed_string(30),</span>
+<span class="gp">... </span><span class="s2">    stock : {warehouse : int64, retail : int64}</span>
+<span class="gp">... </span><span class="s2">  }</span>
+<span class="gp">... </span><span class="s2">&quot;&quot;&quot;</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">pprint</span><span class="p">()</span>
+<span class="go">{</span>
+<span class="go">  id : int64,</span>
+<span class="go">  name : fixed_string(30),</span>
+<span class="go">  price : float64,</span>
+<span class="go">  tags : 2 * fixed_string(30),</span>
+<span class="go">  stock : {</span>
+<span class="go">    warehouse : int64,</span>
+<span class="go">    retail : int64</span>
+<span class="go">  }</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="record-of-arrays">
+<h3>Record of arrays<a class="headerlink" href="#record-of-arrays" title="Permalink to this headline">¶</a></h3>
+<p>Often it is more memory efficient to store an array of records as a record of
+arrays.  This example with columnar data is from the Arrow homepage:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;session_id&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1331247700</span><span class="p">,</span> <span class="mi">1331247702</span><span class="p">,</span> <span class="mi">1331247709</span><span class="p">,</span> <span class="mi">1331247799</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1515529735.4895875</span><span class="p">,</span> <span class="mf">1515529746.2128427</span><span class="p">,</span> <span class="mf">1515529756.4485607</span><span class="p">,</span> <span class="mf">1515529766.2181058</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="s1">&#39;source_ip&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;8.8.8.100&#39;</span><span class="p">,</span> <span class="s1">&#39;100.2.0.11&#39;</span><span class="p">,</span> <span class="s1">&#39;99.101.22.222&#39;</span><span class="p">,</span> <span class="s1">&#39;12.100.111.200&#39;</span><span class="p">]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span>
+<span class="go">ndt(&quot;{session_id : 4 * int64, timestamp : 4 * float64, source_ip : 4 * string}&quot;)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<p>References are transparent pointers to new memory blocks (meaning a new
+data pointer, not a whole new xnd buffer).</p>
+<p>For example, this is an array of pointer to array:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;3 * ref(4 * uint64)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lst</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+<span class="go">xnd([[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]], type=&#39;3 * ref(4 * uint64)&#39;)</span>
+</pre></div>
+</div>
+<p>The user sees no difference to a regular 3 by 4 array, but internally
+the outer dimension consists of three pointers to the inner arrays.</p>
+<p>For memory blocks generated by xnd itself the feature is not so useful –
+after all, it is usually better to have a single memory block than one
+with additional pointers.</p>
+<p>However, suppose that in the above columnar data example another application
+represents the arrays inside the record with pointers.  Using the <em>ref</em> type,
+data structures borrowed from such an application can be properly typed:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;{session_id : &amp;4 * int64, timestamp : &amp;4 * float64, source_ip : &amp;4 * string}&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">type</span>
+<span class="go">ndt(&quot;{session_id : ref(4 * int64), timestamp : ref(4 * float64), source_ip : ref(4 * string)}&quot;)</span>
+</pre></div>
+</div>
+<p>The ampersand is the shorthand for “ref”.</p>
+</div>
+<div class="section" id="constructors">
+<h3>Constructors<a class="headerlink" href="#constructors" title="Permalink to this headline">¶</a></h3>
+<p>Constructors are xnd’s way of creating distinct named types. The constructor
+argument is a regular type.</p>
+<p>Constructors open up a new dtype, so named arrays can be the dtype of
+other arrays.  Type inference currently isn’t aware of constructors,
+so types have to be provided.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;3 * SomeMatrix(2 * 2 * float32)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lst</span> <span class="o">=</span> <span class="p">[[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">xnd([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]], [[9.0, 10.0], [11.0, 12.0]]],</span>
+<span class="go">    type=&#39;3 * SomeMatrix(2 * 2 * float32)&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">xnd([[1.0, 2.0], [3.0, 4.0]], type=&#39;SomeMatrix(2 * 2 * float32)&#39;)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="categorical">
+<h3>Categorical<a class="headerlink" href="#categorical" title="Permalink to this headline">¶</a></h3>
+<p>Categorical types contain values.  The data stored in xnd buffers are indices
+(<code class="xref c c-macro docutils literal notranslate"><span class="pre">int64</span></code>) into the type’s categories.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;categorical(&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, NA)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[&#39;a&#39;, &#39;a&#39;, &#39;b&#39;, &#39;a&#39;, &#39;a&#39;, &#39;a&#39;, None, &#39;c&#39;]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="fixed-string">
+<h3>Fixed String<a class="headerlink" href="#fixed-string" title="Permalink to this headline">¶</a></h3>
+<p>Fixed strings are embedded into arrays.  Supported encodings are ‘ascii’,
+‘utf8’, ‘utf16’ and ‘utf32’. The string size argument denotes the number
+of code points rather than bytes.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;10 * fixed_string(3, &#39;utf32&#39;)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[&#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\U000003B1\U000003B2\U000003B3</span><span class="s2">&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[&#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;αβγ&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="fixed-bytes">
+<h3>Fixed Bytes<a class="headerlink" href="#fixed-bytes" title="Permalink to this headline">¶</a></h3>
+<p>Fixed bytes are embedded into arrays.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;3 * fixed_bytes(size=3)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;123&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[b&#39;\x00\x00\x00&#39;, b&#39;\x00\x00\x00&#39;, b&#39;123&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">align</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>Alignment can be requested with the requirement that size is a multiple of
+alignment:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">ndt</span><span class="p">(</span><span class="s2">&quot;3 * fixed_bytes(size=32, align=16)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">align</span>
+<span class="go">16</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="string">
+<h3>String<a class="headerlink" href="#string" title="Permalink to this headline">¶</a></h3>
+<p>Strings are pointers to <code class="xref c c-macro docutils literal notranslate"><span class="pre">NUL</span></code>-terminated UTF-8 strings.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="s2">&quot;10 * string&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[&#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;abc&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[&#39;abc&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;&#39;]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="bytes">
+<h3>Bytes<a class="headerlink" href="#bytes" title="Permalink to this headline">¶</a></h3>
+<p>Internally, bytes are structs with a size field and a pointer to the data.</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xnd</span><span class="p">([</span><span class="sa">b</span><span class="s1">&#39;123&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;45678&#39;</span><span class="p">])</span>
+<span class="go">xnd([b&#39;123&#39;, b&#39;45678&#39;], type=&#39;2 * bytes&#39;)</span>
+</pre></div>
+</div>
+<p>The bytes constructor takes an optional <em>align</em> argument that specifies the
+alignment of the allocated data:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="p">([</span><span class="sa">b</span><span class="s1">&#39;abc&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;123&#39;</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;2 * bytes(align=64)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">[b&#39;abc&#39;, b&#39;123&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">align</span>
+<span class="go">8</span>
+</pre></div>
+</div>
+<p>Note that <em>x.align</em> is the alignment of the array.  The embedded pointers
+to the bytes data are aligned at <em>64</em>.</p>
+</div>
+<div class="section" id="primitive-types">
+<h3>Primitive types<a class="headerlink" href="#primitive-types" title="Permalink to this headline">¶</a></h3>
+<p>As a short example, here is a tuple that contains all primitive types:</p>
+<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="gp">... </span><span class="s2">   (bool,</span>
+<span class="gp">... </span><span class="s2">    int8, int16, int32, int64,</span>
+<span class="gp">... </span><span class="s2">    uint8, uint16, uint32, uint64,</span>
+<span class="gp">... </span><span class="s2">    bfloat16, float16, float32, float64,</span>
+<span class="gp">... </span><span class="s2">    bcomplex32, complex32, complex64, complex128)</span>
+<span class="gp">... </span><span class="s2">&quot;&quot;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">xnd</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">value</span>
+<span class="go">(False, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0j, 0j, 0j, 0j)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="align-pack.html" class="btn btn-neutral float-right" title="Alignment and packing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2018, Plures Project
+      <span class="lastupdated">
+        Last updated on True.
+      </span>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

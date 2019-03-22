@@ -1,0 +1,372 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta content="index,follow" name="robots" />
+<meta content="libxnd documentation" name="description" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Data structures &mdash; Plures v0.2.0dev3 documentation</title>
+  
+
+  
+  
+  
+  
+    <link rel="canonical" href="https://xnd.io/libxnd/data-structures.html"/>
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Functions" href="functions.html" />
+    <link rel="prev" title="libxnd" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/xndlogo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v0.2.0dev3
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">libxnd</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Data structures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bitmaps">Bitmaps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#view">View</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flags">Flags</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#macros">Macros</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#master-buffer">Master buffer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#slice-and-index-keys">Slice and index keys</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html">Functions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xnd/index.html">xnd</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../libgumath/index.html">libgumath</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../gumath/index.html">gumath</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../xndtools/index.html">xndtools</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../releases/index.html">Releases</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Plures</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">libxnd</a> &raquo;</li>
+        
+      <li>Data structures</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="data-structures">
+<h1>Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h1>
+<p>libxnd is a lightweight container library that leaves most of the work to
+libndtypes. The underlying idea is to have a small struct that contains
+bitmaps, a linear index, a type and a data pointer.</p>
+<p>The type contains all low level access information.</p>
+<p>Since the struct is small, it can easily be passed around by value when
+it serves as a view on the data.</p>
+<p>The owner of the data is a master buffer with some additional bookkeeping
+fields.</p>
+<div class="section" id="bitmaps">
+<h2>Bitmaps<a class="headerlink" href="#bitmaps" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c notranslate" id="std:topic-bitmaps"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">xnd_bitmap</span> <span class="n">xnd_bitmap_t</span><span class="p">;</span>
+
+<span class="k">struct</span> <span class="n">xnd_bitmap</span> <span class="p">{</span>
+    <span class="kt">uint8_t</span> <span class="o">*</span><span class="n">data</span><span class="p">;</span>      <span class="cm">/* bitmap */</span>
+    <span class="kt">int64_t</span> <span class="n">size</span><span class="p">;</span>       <span class="cm">/* number of subtree bitmaps in the &quot;next&quot; array */</span>
+    <span class="n">xnd_bitmap_t</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span> <span class="cm">/* array of bitmaps for subtrees */</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>libxnd supports data with optional values. Any type can have a bitmap for its
+data.  Bitmaps are addressed using the linear index in the <code class="xref c c-macro docutils literal notranslate"><span class="pre">xnd_t</span></code>
+struct.</p>
+<p>For a scalar, the bitmap contains just one addressable bit.</p>
+<p>For fixed and variable arrays, the bitmap contains one bit for each item.</p>
+<p>Container types like tuples and records have new bitmaps for each of their
+fields if any of the field subtrees contains optional data.</p>
+<p>These field bitmaps are in the <em>next</em> array.</p>
+</div>
+<div class="section" id="view">
+<h2>View<a class="headerlink" href="#view" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c notranslate" id="std:topic-xnd_view"><div class="highlight"><pre><span></span><span class="cm">/* Typed memory block, usually a view. */</span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="n">xnd</span> <span class="p">{</span>
+    <span class="n">xnd_bitmap_t</span> <span class="n">bitmap</span><span class="p">;</span> <span class="cm">/* bitmap tree */</span>
+    <span class="kt">int64_t</span> <span class="n">index</span><span class="p">;</span>       <span class="cm">/* linear index for var dims */</span>
+    <span class="k">const</span> <span class="n">ndt_t</span> <span class="o">*</span><span class="n">type</span><span class="p">;</span>   <span class="cm">/* type of the data */</span>
+    <span class="kt">char</span> <span class="o">*</span><span class="n">ptr</span><span class="p">;</span>           <span class="cm">/* data */</span>
+<span class="p">}</span> <span class="n">xnd_t</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This is the xnd view, with a typed data pointer, the current linear index
+and a bitmap.</p>
+<p>When passing the view around, the linear index needs to be maintained because
+it is required to determine if a value is missing (NA).</p>
+<p>The convention is to apply the linear index (adjust the <em>ptr</em> and set it
+to <em>0</em>) only when a non-optional element at <em>ndim == 0</em> is actually
+accessed.</p>
+<p>This happens for example when getting the value of an element or when
+descending into a record.</p>
+</div>
+<div class="section" id="flags">
+<h2>Flags<a class="headerlink" href="#flags" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c notranslate" id="std:topic-flags"><div class="highlight"><pre><span></span><span class="cp">#define XND_OWN_TYPE     0x00000001U </span><span class="cm">/* type pointer */</span><span class="cp"></span>
+<span class="cp">#define XND_OWN_DATA     0x00000002U </span><span class="cm">/* data pointer */</span><span class="cp"></span>
+<span class="cp">#define XND_OWN_STRINGS  0x00000004U </span><span class="cm">/* embedded string pointers */</span><span class="cp"></span>
+<span class="cp">#define XND_OWN_BYTES    0x00000008U </span><span class="cm">/* embedded bytes pointers */</span><span class="cp"></span>
+<span class="cp">#define XND_OWN_POINTERS 0x00000010U </span><span class="cm">/* embedded pointers */</span><span class="cp"></span>
+
+<span class="cp">#define XND_OWN_ALL (XND_OWN_TYPE |    \</span>
+<span class="cp">                     XND_OWN_DATA |    \</span>
+<span class="cp">                     XND_OWN_STRINGS | \</span>
+<span class="cp">                     XND_OWN_BYTES |   \</span>
+<span class="cp">                     XND_OWN_POINTERS)</span>
+
+<span class="cp">#define XND_OWN_EMBEDDED (XND_OWN_DATA |    \</span>
+<span class="cp">                          XND_OWN_STRINGS | \</span>
+<span class="cp">                          XND_OWN_BYTES |   \</span>
+<span class="cp">                          XND_OWN_POINTERS)</span>
+</pre></div>
+</div>
+<p>The ownership flags for the xnd master buffer (see below).  Like libndtypes,
+libxnd itself has no notion of how many exported views a master buffer has.</p>
+<p>This is deliberately done in order to prevent two different memory management
+schemes from getting in each other’s way.</p>
+<p>However, for deallocating a master buffer the flags must be set correctly.</p>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">XND_OWN_TYPE</span></code> is set if the master buffer owns the <code class="xref c c-macro docutils literal notranslate"><span class="pre">ndt_t</span></code>.</p>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">XND_OWN_DATA</span></code> is set if the master buffer owns the data pointer.</p>
+<p>The <em>string</em>, <em>bytes</em> and <em>ref</em> types have pointers that are embedded in the
+data.  Usually, these are owned and deallocated by libxnd.</p>
+<p>For strings, the Python bindings use the convention that <code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code> strings
+are interpreted as the empty string. Once a string pointer is initialized it
+belongs to the master buffer.</p>
+</div>
+<div class="section" id="macros">
+<h2>Macros<a class="headerlink" href="#macros" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c notranslate" id="std:topic-macros"><div class="highlight"><pre><span></span><span class="cm">/* Convenience macros to extract embedded values. */</span>
+<span class="cp">#define XND_POINTER_DATA(ptr) (*((char **)ptr))</span>
+<span class="cp">#define XND_BYTES_SIZE(ptr) (((ndt_bytes_t *)ptr)-&gt;size)</span>
+<span class="cp">#define XND_BYTES_DATA(ptr) (((ndt_bytes_t *)ptr)-&gt;data)</span>
+</pre></div>
+</div>
+<p>These macros should be used to extract embedded <em>ref</em>, <em>string</em> and <em>bytes</em>
+data.</p>
+</div>
+<div class="section" id="master-buffer">
+<h2>Master buffer<a class="headerlink" href="#master-buffer" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c notranslate" id="std:topic-xnd_master"><div class="highlight"><pre><span></span><span class="cm">/* Master memory block. */</span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="n">xnd_master</span> <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">flags</span><span class="p">;</span> <span class="cm">/* ownership flags */</span>
+    <span class="n">xnd_t</span> <span class="n">master</span><span class="p">;</span>   <span class="cm">/* typed memory */</span>
+<span class="p">}</span> <span class="n">xnd_master_t</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This is the master buffer.  <em>flags</em> are explained above, the <em>master</em> buffer
+should be considered constant.</p>
+<p>For traversing memory, copy a new view buffer by value.</p>
+</div>
+<div class="section" id="slice-and-index-keys">
+<h2>Slice and index keys<a class="headerlink" href="#slice-and-index-keys" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c notranslate" id="std:topic-xnd_key"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="n">xnd_key</span> <span class="p">{</span> <span class="n">Index</span><span class="p">,</span> <span class="n">FieldName</span><span class="p">,</span> <span class="n">Slice</span> <span class="p">};</span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+  <span class="k">enum</span> <span class="n">xnd_key</span> <span class="n">tag</span><span class="p">;</span>
+  <span class="k">union</span> <span class="p">{</span>
+    <span class="kt">int64_t</span> <span class="n">Index</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">FieldName</span><span class="p">;</span>
+    <span class="n">ndt_slice_t</span> <span class="n">Slice</span><span class="p">;</span>
+  <span class="p">};</span>
+<span class="p">}</span> <span class="n">xnd_index_t</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Slicing and indexing uses the same model as Python.  Indices are usually
+integers, but record fields may also be indexed with field names.</p>
+<p><em>ndt_slice_t</em> has <em>start</em>, <em>stop</em>, <em>step</em> fields that must be filled in with
+normalized values following the same protocol as <code class="xref c c-func docutils literal notranslate"><span class="pre">PySlice_Unpack</span></code>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="functions.html" class="btn btn-neutral float-right" title="Functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="libxnd" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2018, Plures Project
+      <span class="lastupdated">
+        Last updated on True.
+      </span>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
