@@ -11,6 +11,13 @@ xndtools
 
 xndtools is a Python package containing development tools for the XND project.
 
+Installation
+------------
+
+.. toctree::
+   :maxdepth: 1
+
+   Installation.rst
 
 kernel_generator
 ----------------

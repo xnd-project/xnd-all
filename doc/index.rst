@@ -87,3 +87,11 @@ Releases
    :maxdepth: 1
 
    releases/index.rst
+
+Installation
+------------
+
+.. toctree::
+   :maxdepth: 1
+
+   installation/index.rst

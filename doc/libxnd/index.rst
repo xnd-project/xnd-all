@@ -21,5 +21,3 @@ strings, bytes and categorical values.
 
    data-structures.rst
    functions.rst
-
-

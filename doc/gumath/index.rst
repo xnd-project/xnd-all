@@ -23,4 +23,5 @@ modules.
 .. toctree::
    :maxdepth: 1
 
+   Installation.rst
    functions.rst
