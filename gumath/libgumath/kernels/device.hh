@@ -228,6 +228,8 @@ _abs(T x)               \
     return x;           \
 }
 
+abs_unsigned(bool)
+
 abs_unsigned(uint8_t)
 abs_unsigned(uint16_t)
 abs_unsigned(uint32_t)
@@ -289,7 +291,7 @@ name(T base, T exp)                  \
         exp >>= 1;                   \
     }                                \
                                      \
-    return r;                        \
+    return (T)r;                     \
 }
 
 pow_unsigned(_pow, uint8_t, UINT8_MAX)
@@ -307,11 +309,11 @@ static inline DEVICE T                  \
 _pow(T ibase, T exp)                    \
 {                                       \
     U base;                             \
-    U r;                                \
+    T r;                                \
                                         \
     if (ibase < 0) {                    \
         base = (U)(-ibase);             \
-        r = _pow_##T(base, exp);        \
+        r = (T)_pow_##T(base, exp);     \
         return (exp % 2 == 0) ? r : -r; \
     }                                   \
     else {                              \
@@ -494,7 +496,7 @@ c_powi(Complex<T> x, int64_t n)
     }
     else {
         Complex<T> one{1, 0};
-        return c_quot(one, c_powu(x, (T)(-n)));
+        return c_quot(one, c_powu(x, (uint64_t)(-n)));
     }
 }
 
