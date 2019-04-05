@@ -127,40 +127,88 @@ class TestOperators(unittest.TestCase):
             self.assertEqual(z.tolist(), c.tolist())
 
 
-
 @unittest.skipIf(np is None, "test requires numpy")
 class TestArrayUfunc(unittest.TestCase):
 
-    ufuncs =[v for v in np.__dict__.values() if isinstance(v, np.ufunc)]
-    # funcs = [v for v in np.__dict__.values() if callable(v) and hasattr(v, '__wrapped__')]
-    binary_plus_axis = { "tensordot": (np.ndarray, np.ndarray, int), }
-    binary = { "dot": (np.ndarray, np.ndarray), }
+    unary = ['absolute', 'absolute', 'arccos', 'arccosh', 'arcsin', 'arcsinh',
+             'arctan', 'arctanh', 'cbrt', 'ceil', 'conjugate', 'cos', 'cosh',
+             'degrees', 'exp', 'expm1', 'fabs', 'floor', 'frexp', 'invert', 'isfinite',
+             'isinf', 'isnan', 'isnat', 'log', 'log10', 'log1p', 'log2', 'logical_not',
+             'modf', 'negative', 'positive', 'rad2deg', 'radians', 'reciprocal', 'rint',
+             'sign', 'signbit', 'sin', 'sinh', 'spacing', 'sqrt', 'square', 'tan',
+             'tanh', 'trunc']
 
-    def test_ufuncs(self):
+    binary = ['add', 'arctan2', 'bitwise_and', 'bitwise_or', 'bitwise_xor',
+              'copysign', 'divmod', 'equal', 'float_power', 'floor_divide',
+              'fmax', 'fmin', 'fmod', 'gcd', 'greater', 'greater_equal',
+              'heaviside', 'hypot', 'lcm', 'ldexp', 'left_shift', 'less',
+              'less_equal', 'logaddexp', 'logaddexp2', 'logical_and', 'logical_xor',
+              'matmul', 'maximum', 'minimum', 'multiply', 'nextafter', 'not_equal',
+              'power', 'remainder', 'right_shift', 'subtract', 'true_divide',
+              'true_divide']
 
-        for x in gen_fixed(3, 1, 5):
-            for y in gen_fixed(3, 1, 5):
-                xnd_x = array(x, dtype="float32")
-                xnd_y = array(y, dtype="float32")
-                np_x = np.array(x, dtype="float32")
-                np_y = np.array(y, dtype="float32")
-                for f in self.ufuncs:
-                    arity = 1
+    def test_unary(self):
+        for name in self.unary:
+            f = getattr(np, name)
+            for lst in gen_fixed(3, 1, 5):
+                a = np.array(lst, dtype="float32")
+
+                np_exc = None
+                try:
+                    b = f(a)
+                except Exception as e:
+                    np_exc = e.__class__
+
+                x = array(lst, dtype="float32")
+
+                xnd_exc = None
+                try:
+                    y = f(x)
+                except Exception as e:
+                    xnd_exc = e.__class__
+
+                if np_exc or xnd_exc:
+                    self.assertEqual(xnd_exc, np_exc)
+                    continue
+
+                np.testing.assert_equal(y, b)
+
+    def test_binary(self):
+        for name in self.binary:
+            f = getattr(np, name)
+            for lst1 in gen_fixed(3, 1, 5):
+                for lst2 in gen_fixed(3, 1, 5):
+                    a = np.array(lst1, dtype="float32")
+                    b = np.array(lst2, dtype="float32")
+
+                    np_exc = None
                     try:
-                        a = f(np_x)
-                    except:
-                        arity = 2
-                        try:
-                            a = f(np_x, np_y)
-                        except:
-                            continue
+                        c = f(a, b)
+                    except Exception as e:
+                        np_exc = e.__class__
 
-                    if arity == 1:
-                        b = f(xnd_x)
-                    else:
-                        b = f(xnd_x, xnd_y)
+                    x = array(lst1, dtype="float32")
+                    y = array(lst2, dtype="float32")
 
-                    np.testing.assert_equal(a, b)
+                    xnd_exc = None
+                    try:
+                        z = f(x, y)
+                    except Exception as e:
+                        xnd_exc = e.__class__
+
+                    if np_exc or xnd_exc:
+                        self.assertEqual(xnd_exc, np_exc)
+                        continue
+
+                    np.testing.assert_equal(z, c)
+
+
+@unittest.skipIf(np is None, "test requires numpy")
+class TestArrayFunc(unittest.TestCase):
+
+    # funcs = [v for v in np.__dict__.values() if callable(v) and hasattr(v, '__wrapped__')]
+    binary_plus_axis = { 'tensordot': (np.ndarray, np.ndarray, int), }
+    binary = { "dot": (np.ndarray, np.ndarray), }
 
     @unittest.skipIf(not HAVE_ARRAY_FUNCTION,
                      "test requires numpy with __array_function__ support")
@@ -300,7 +348,7 @@ class TestArrayUfunc(unittest.TestCase):
 
     @unittest.skipIf(not HAVE_ARRAY_FUNCTION,
                      "test requires numpy with __array_function__ support")
-    def test_array_funcs(self):
+    def test_binary(self):
 
         for name in self.binary:
             f = getattr(np, name)
@@ -365,6 +413,7 @@ class TestArrayUfunc(unittest.TestCase):
 ALL_TESTS = [
   TestOperators,
   TestArrayUfunc,
+  TestArrayFunc,
 ]
 
 
