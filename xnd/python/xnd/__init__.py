@@ -140,6 +140,10 @@ class xnd(Xnd):
         fmt = fmt.replace("\n", "\n   ")
         return "xnd%s" % fmt
 
+    def __reduce__(self):
+        b = self.serialize(readonly=False)
+        return (self.deserialize, (b,))
+
     def copy_contiguous(self, dtype=None):
         if isinstance(dtype, str):
             dtype = ndt(dtype)
@@ -147,6 +151,12 @@ class xnd(Xnd):
 
     def reshape(self, *args, order=None):
         return super()._reshape(args, order=order)
+
+    def serialize(self, readonly=True):
+        if not self.type.is_c_contiguous() and \
+           not self.type.is_f_contiguous():
+            self = self.copy_contiguous()
+        return self._serialize(readonly=readonly)
 
     @classmethod
     def empty(cls, type=None, device=None):
@@ -158,15 +168,16 @@ class xnd(Xnd):
         return super(xnd, cls).empty(type, device)
 
     @classmethod
-    def unsafe_from_data(cls, obj=None, type=None):
+    def from_buffer_and_type(cls, obj=None, type=None):
         """Return an xnd object that obtains memory from 'obj' via the
-           buffer protocol.  The buffer protocol's type is overridden by
-          'type'.  No safety checks are performed, the user is responsible
-           for passing a suitable type.
+           buffer protocol.  'obj' must be a simple writable buffer with
+           format 'B'.  The xnd object uses the provided type, which must
+           have the same data size as 'obj'.
         """
         if isinstance(type, str):
             type = ndt(type)
-        return cls._unsafe_from_data(obj, type)
+        return super().from_buffer_and_type(obj, type)
+
 
 def typeof(v, dtype=None):
     if isinstance(dtype, str):
@@ -403,9 +414,6 @@ class array(xnd):
 
     def __deepcopy__(self, memo):
         return self.copy()
-
-    def __reduce__(self):
-        raise RuntimeError("reduce")
 
     def __bool__(self):
         np = self._get_numpy()
