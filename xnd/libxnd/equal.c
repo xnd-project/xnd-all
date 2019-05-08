@@ -173,6 +173,20 @@ xnd_strict_equal(const xnd_t *x, const xnd_t *y, ndt_context_t *ctx)
         return 1;
     }
 
+    case Union: {
+        const xnd_t xnext = xnd_union_next(x, ctx);
+        if (xnext.ptr == NULL) {
+            return -1;
+        }
+
+        const xnd_t ynext = xnd_union_next(y, ctx);
+        if (ynext.ptr == NULL) {
+            return -1;
+        }
+
+        return xnd_strict_equal(&xnext, &ynext, ctx);
+    }
+
     case Ref: {
         const xnd_t xnext = xnd_ref_next(x, ctx);
         if (xnext.ptr == NULL) {
@@ -402,8 +416,8 @@ xnd_strict_equal(const xnd_t *x, const xnd_t *y, ndt_context_t *ctx)
     }
 
     case String: {
-        const char *a = XND_POINTER_DATA(x->ptr);
-        const char *b = XND_POINTER_DATA(y->ptr);
+        const char *a = XND_STRING_DATA(x->ptr);
+        const char *b = XND_STRING_DATA(y->ptr);
         return strcmp(a, b) == 0;
     }
 
@@ -1066,6 +1080,20 @@ xnd_equal(const xnd_t *x, const xnd_t *y, ndt_context_t *ctx)
         return 1;
     }
 
+    case Union: {
+        const xnd_t xnext = xnd_union_next(x, ctx);
+        if (xnext.ptr == NULL) {
+            return -1;
+        }
+
+        const xnd_t ynext = xnd_union_next(y, ctx);
+        if (ynext.ptr == NULL) {
+            return -1;
+        }
+
+        return xnd_equal(&xnext, &ynext, ctx);
+    }
+
     case Constr: {
         if (u->tag != Constr || strcmp(u->Constr.name, t->Constr.name) != 0) {
             return 0;
@@ -1284,8 +1312,8 @@ xnd_equal(const xnd_t *x, const xnd_t *y, ndt_context_t *ctx)
             return 0;
         }
 
-        const char *a = XND_POINTER_DATA(x->ptr);
-        const char *b = XND_POINTER_DATA(y->ptr);
+        const char *a = XND_STRING_DATA(x->ptr);
+        const char *b = XND_STRING_DATA(y->ptr);
         return strcmp(a, b) == 0;
     }
 

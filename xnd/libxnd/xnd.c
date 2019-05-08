@@ -49,7 +49,6 @@
 
 
 static int xnd_init(xnd_t * const x, const uint32_t flags, ndt_context_t *ctx);
-static void xnd_clear(xnd_t * const x, const uint32_t flags);
 
 
 /*****************************************************************************/
@@ -280,6 +279,16 @@ xnd_init(xnd_t * const x, const uint32_t flags, ndt_context_t *ctx)
         return 0;
     }
 
+    case Union: {
+        xnd_t next = _union_next(x);
+        if (xnd_init(&next, flags, ctx) < 0) {
+            xnd_clear(&next, flags);
+            return -1;
+        }
+
+        return 0;
+    }
+
     /*
      * Ref represents a pointer to an explicit type. If XND_OWN_POINTERS
      * is set, allocate memory for that type and set the pointer.
@@ -328,17 +337,6 @@ xnd_init(xnd_t * const x, const uint32_t flags, ndt_context_t *ctx)
         return 0;
     }
 
-    case String: {
-        char *s = ndt_calloc(1, 1);
-        if (s == NULL) {
-            ndt_err_format(ctx, NDT_MemoryError, "out of memory");
-            return -1;
-        }
-        XND_POINTER_DATA(x->ptr) = s;
-
-        return 0;
-    }
-
     /* Categorical is already initialized by calloc(). */
     case Categorical:
         return 0;
@@ -359,7 +357,7 @@ xnd_init(xnd_t * const x, const uint32_t flags, ndt_context_t *ctx)
     case BFloat16: case Float16: case Float32: case Float64:
     case BComplex32: case Complex32: case Complex64: case Complex128:
     case FixedString: case FixedBytes:
-    case Bytes:
+    case String: case Bytes:
         return 0;
 
     /* NOT REACHED: intercepted by ndt_is_abstract(). */
@@ -575,12 +573,13 @@ xnd_clear_bytes(xnd_t *x, const uint32_t flags)
 
     if (flags & XND_OWN_BYTES) {
         ndt_aligned_free(XND_BYTES_DATA(x->ptr));
+        XND_BYTES_SIZE(x->ptr) = 0;
         XND_BYTES_DATA(x->ptr) = NULL;
     }
 }
 
 /* Clear embedded pointers in the data according to flags. */
-static void
+void
 xnd_clear(xnd_t * const x, const uint32_t flags)
 {
     NDT_STATIC_CONTEXT(ctx);
@@ -640,6 +639,12 @@ xnd_clear(xnd_t * const x, const uint32_t flags)
             xnd_clear(&next, flags);
         }
 
+        return;
+    }
+
+    case Union: {
+        xnd_t next = _union_next(x);
+        xnd_clear(&next, flags);
         return;
     }
 
@@ -991,6 +996,15 @@ _xnd_subtree_index(const xnd_t *x, const int64_t *indices, int len, ndt_context_
         return _xnd_subtree_index(&next, indices+1, len-1, ctx);
     }
 
+    case Union: {
+        const xnd_t next = xnd_union_next(x, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return _xnd_subtree_index(&next, indices, len, ctx);
+    }
+
     case Ref: {
         const xnd_t next = xnd_ref_next(x, ctx);
         if (next.ptr == NULL) {
@@ -1009,7 +1023,7 @@ _xnd_subtree_index(const xnd_t *x, const int64_t *indices, int len, ndt_context_
         return _xnd_subtree_index(&next, indices, len, ctx);
     }
 
-   case Nominal: {
+    case Nominal: {
         const xnd_t next = xnd_nominal_next(x, ctx);
         if (next.ptr == NULL) {
             return xnd_error;
@@ -1115,6 +1129,15 @@ _xnd_subtree(const xnd_t *x, const xnd_index_t indices[], int len, bool indexabl
         }
 
         return _xnd_subtree(&next, indices+1, len-1, true, ctx);
+    }
+
+    case Union: {
+        const xnd_t next = xnd_union_next(x, ctx);
+        if (next.ptr == NULL) {
+            return xnd_error;
+        }
+
+        return _xnd_subtree(&next, indices, len, false, ctx);
     }
 
     case Ref: {
@@ -1400,6 +1423,12 @@ xnd_slice(const xnd_t *x, const xnd_index_t indices[], int len, ndt_context_t *c
     case Record: {
         ndt_err_format(ctx, NDT_NotImplementedError,
             "slicing records is not supported");
+        return xnd_error;
+    }
+
+    case Union: {
+        ndt_err_format(ctx, NDT_NotImplementedError,
+            "slicing unions is not supported");
         return xnd_error;
     }
 
