@@ -80,6 +80,7 @@ matrix:
         - export PATH=$HOME/miniconda3/bin:$PATH
         - conda update --yes conda
         - conda install --yes conda-build
+        - conda install --yes conda-verify
         - conda install --yes anaconda-client
       script:
         - cd xnd-all
@@ -93,12 +94,6 @@ matrix:
         - export LIBGUMATH=`conda build --output build/gumath/.conda/libgumath`
         - export GUMATH=`conda build --output build/gumath/.conda/gumath`
         - export XNDTOOLS=`conda build --output build/xndtools/.conda`
-        - sha256sum $LIBNDTYPES
-        - sha256sum $NDTYPES
-        - sha256sum $LIBXND
-        - sha256sum $XND
-        - sha256sum $LIBGUMATH
-        - sha256sum $GUMATH
         - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBNDTYPES --user xnd --label dev --skip-existing; fi
         - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $NDTYPES --user xnd --label dev --skip-existing; fi
         - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBXND --user xnd --label dev --skip-existing; fi
@@ -118,6 +113,7 @@ matrix:
         - export CC=clang
         - conda update --yes conda
         - conda install --yes conda-build
+        - conda install --yes conda-verify
         - conda install --yes anaconda-client
       script:
         - cd xnd-all
@@ -131,12 +127,6 @@ matrix:
         - export LIBGUMATH=`conda build --output build/gumath/.conda/libgumath`
         - export GUMATH=`conda build --output build/gumath/.conda/gumath`
         - export XNDTOOLS=`conda build --output build/xndtools/.conda`
-        - sha256sum $LIBNDTYPES
-        - sha256sum $NDTYPES
-        - sha256sum $LIBXND
-        - sha256sum $XND
-        - sha256sum $LIBGUMATH
-        - sha256sum $GUMATH
         - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBNDTYPES --user xnd --label dev --skip-existing; fi
         - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $NDTYPES --user xnd --label dev --skip-existing; fi
         - if test X"$TRAVIS_BRANCH" = X"master" && test X"$TRAVIS_PULL_REQUEST" = X"false"; then anaconda --token $ANACONDA_TOKEN upload $LIBXND --user xnd --label dev --skip-existing; fi
