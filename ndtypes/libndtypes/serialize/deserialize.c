@@ -642,6 +642,33 @@ read_var_dim_elem(const common_t *fields, const char * const ptr, int64_t offset
     return t;
 }
 
+static const ndt_t *
+read_array(const common_t *fields, const char * const ptr, int64_t offset,
+           const int64_t len, ndt_context_t *ctx)
+{
+    const ndt_t *type;
+    ndt_t *t;
+    int64_t itemsize;
+
+    offset = read_pos_int64(&itemsize, ptr, offset, len, ctx);
+    if (offset < 0) return NULL;
+
+    type = read_type(ptr, offset, len, ctx);
+    if (type == NULL) {
+        return NULL;
+    }
+
+    t = new_copy_common(fields, ctx);
+    if (t == NULL) {
+        ndt_decref(type);
+        return NULL;
+    }
+    t->Array.itemsize = itemsize;
+    t->Array.type = type;
+
+    return t;
+}
+
 static ndt_t *
 read_tuple(const common_t *fields, const char * const ptr, int64_t offset,
            const int64_t len, ndt_context_t *ctx)
@@ -1024,6 +1051,7 @@ read_type(const char * const ptr, int64_t offset, const int64_t len,
     case EllipsisDim: return read_ellipsis_dim(&fields, ptr, offset, len, ctx);
     case VarDim: return read_var_dim(&fields, ptr, offset, len, ctx);
     case VarDimElem: return read_var_dim_elem(&fields, ptr, offset, len, ctx);
+    case Array: return read_array(&fields, ptr, offset, len, ctx);
     case Tuple: return read_tuple(&fields, ptr, offset, len, ctx);
     case Record: return read_record(&fields, ptr, offset, len, ctx);
     case Union: return read_union(&fields, ptr, offset, len, ctx);

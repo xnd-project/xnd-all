@@ -250,6 +250,14 @@ ndt_equal(const ndt_t *t, const ndt_t *u)
         return ndt_equal(t->EllipsisDim.type, u->EllipsisDim.type);
     }
 
+    case Array: {
+        if (t->Array.itemsize != u->Array.itemsize) {
+            return 0;
+        }
+
+        return ndt_equal(t->Array.type, u->Array.type);
+    }
+
     case Tuple: {
         if (t->Tuple.flag != u->Tuple.flag ||
             t->Tuple.shape != u->Tuple.shape) {

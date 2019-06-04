@@ -601,6 +601,45 @@ class TestEllipsisDim(unittest.TestCase):
         self.assertRaises(TypeError, t, 'shape')
         self.assertRaises(TypeError, t, 'strides')
 
+class TestArray(unittest.TestCase):
+
+    def test_array_predicates(self):
+        t = ndt("array of complex128")
+        check_serialize(self, t)
+
+        self.assertFalse(t.isabstract())
+        self.assertFalse(t.iscomplex())
+        self.assertTrue(t.isconcrete())
+        self.assertFalse(t.isfloat())
+        self.assertFalse(t.isoptional())
+        self.assertFalse(t.isscalar())
+        self.assertFalse(t.issigned())
+        self.assertFalse(t.isunsigned())
+
+        # The flexible array counts as a dtype.
+        self.assertTrue(t.is_c_contiguous())
+        self.assertTrue(t.is_f_contiguous())
+
+    def test_array_dim_common_fields(self):
+        dt = "{a: complex64, b: float64}"
+        t = ndt("array of %s" % dt)
+        check_serialize(self, t)
+        dtype = ndt(dt)
+
+        # The flexible array counts as a dtype.
+        self.assertEqual(t.ndim, 0)
+        self.assertEqual(t.shape, ())
+        self.assertEqual(t.strides, ())
+
+        if not HAVE_32_BIT_LINUX:
+            self.assertEqual(t.itemsize, dtype.itemsize)
+            self.assertEqual(t.align, dtype.align)
+
+    def test_array_invariants(self):
+        # Mixing array with fixed/var dimensions is disallowed.
+        self.assertRaises(TypeError, ndt, "array of 2 * int64")
+        self.assertRaises(TypeError, ndt, "array of var * int64")
+
 
 class TestTuple(unittest.TestCase):
 
@@ -2082,6 +2121,7 @@ ALL_TESTS = [
   TestVarDim,
   TestSymbolicDim,
   TestEllipsisDim,
+  TestArray,
   TestTuple,
   TestRecord,
   TestUnion,

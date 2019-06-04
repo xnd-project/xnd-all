@@ -123,6 +123,7 @@ yylex(YYSTYPE *val, YYLTYPE *loc, yyscan_t scanner, ndt_context_t *ctx)
 %type <ndt> fixed_string
 %type <ndt> bytes
 %type <ndt> fixed_bytes
+%type <ndt> array
 %type <ndt> ref
 
 %type <ndt> tuple_type
@@ -179,7 +180,7 @@ yylex(YYSTYPE *val, YYLTYPE *loc, yyscan_t scanner, ndt_context_t *ctx)
    BYTES FIXED_BYTES_KIND FIXED_BYTES
    REF
 
-FIXED VAR OF
+FIXED VAR ARRAY OF
 
 COMMA COLON LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK STAR ELLIPSIS
 RARROW EQUAL LESS GREATER QUESTIONMARK BANG AMPERSAND BAR
@@ -279,6 +280,7 @@ scalar:
 | option_opt FIXED_BYTES_KIND  { $$ = ndt_fixed_bytes_kind($1, ctx); if ($$ == NULL) YYABORT; }
 | fixed_bytes                  { $$ = $1; }
 | categorical                  { $$ = $1; }
+| array                        { $$ = $1; }
 | ref                          { $$ = $1; }
 
 signed:
@@ -339,6 +341,9 @@ encoding:
 
 bytes:
   option_opt BYTES arguments_opt { $$ = mk_bytes($3, $1, ctx); if ($$ == NULL) YYABORT; }
+
+array:
+  option_opt ARRAY OF datashape { $$ = mk_array($4, $1, ctx); if ($$ == NULL) YYABORT; }
 
 fixed_bytes:
   option_opt FIXED_BYTES LPAREN attribute_seq RPAREN { $$ = mk_fixed_bytes($4, $1, ctx); if ($$ == NULL) YYABORT; }
