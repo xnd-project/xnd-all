@@ -75,6 +75,12 @@ xnd_err_occurred(const xnd_t *x)
 /*****************************************************************************/
 
 static bool
+requires_init(const ndt_t * const t)
+{
+    return !ndt_is_ref_free(t);
+}
+
+static bool
 is_primary_type(const ndt_t * const t, ndt_context_t *ctx)
 {
     if (ndt_is_abstract(t)) {
@@ -83,18 +89,36 @@ is_primary_type(const ndt_t * const t, ndt_context_t *ctx)
         return false;
     }
 
+    if (t->flags & NDT_CHAR) {
+        ndt_err_format(ctx, NDT_NotImplementedError, "char is not implemented");
+        return false;
+    }
+
     switch (t->tag) {
     case FixedDim: {
-        if (ndt_is_c_contiguous(t) || ndt_is_f_contiguous(t)) {
-            return true;
+        if (!ndt_is_c_contiguous(t) && !ndt_is_f_contiguous(t)) {
+            ndt_err_format(ctx, NDT_ValueError,
+                "cannot create xnd container from non-contiguous type");
+            return false;
         }
-        break;
+        return true;
     }
     case VarDim: case VarDimElem: {
-        if (ndt_is_var_contiguous(t)) {
-            return true;
+        if (!ndt_is_var_contiguous(t)) {
+            ndt_err_format(ctx, NDT_ValueError,
+                "cannot create xnd container from non-contiguous type");
+            return false;
         }
-        break;
+        return true;
+    }
+    case Array: {
+        if (requires_init(t)) {
+            ndt_err_format(ctx, NDT_ValueError,
+                "flexible arrays cannot have dtypes that require "
+                "initialization");
+            return false;
+        }
+        return true;
     }
     default:
         return true;
@@ -105,27 +129,6 @@ is_primary_type(const ndt_t * const t, ndt_context_t *ctx)
     return false;
 }
 
-
-static bool
-requires_init(const ndt_t * const t)
-{
-    const ndt_t *dtype = ndt_dtype(t);
-
-    switch (dtype->tag) {
-    case Categorical:
-    case Bool:
-    case Int8: case Int16: case Int32: case Int64:
-    case Uint8: case Uint16: case Uint32: case Uint64:
-    case BFloat16: case Float16: case Float32: case Float64:
-    case BComplex32: case Complex32: case Complex64: case Complex128:
-    case FixedString: case FixedBytes:
-    case String: case Bytes:
-    case Array:
-        return false;
-    default:
-        return true;
-    }
-}
 
 /* Create and initialize memory with type 't'. */
 #ifdef HAVE_CUDA
@@ -138,7 +141,7 @@ xnd_cuda_new(const ndt_t * const t, ndt_context_t *ctx)
         return NULL;
     }
 
-    if (requires_init(t)) {
+    if (!ndt_is_pointer_free(t)) {
         ndt_err_format(ctx, NDT_ValueError,
             "only pointer-free types are supported on cuda");
         return NULL;
@@ -338,6 +341,10 @@ xnd_init(xnd_t * const x, const uint32_t flags, ndt_context_t *ctx)
         return 0;
     }
 
+    /* Array is already initialized by calloc(). */
+    case Array:
+        return 0;
+
     /* Categorical is already initialized by calloc(). */
     case Categorical:
         return 0;
@@ -359,7 +366,6 @@ xnd_init(xnd_t * const x, const uint32_t flags, ndt_context_t *ctx)
     case BComplex32: case Complex32: case Complex64: case Complex128:
     case FixedString: case FixedBytes:
     case String: case Bytes:
-    case Array:
         return 0;
 
     /* NOT REACHED: intercepted by ndt_is_abstract(). */
@@ -524,6 +530,10 @@ xnd_from_xnd(xnd_t *src, uint32_t flags, ndt_context_t *ctx)
 static bool
 requires_clear(const ndt_t * const t)
 {
+    if (t->tag == Array) {
+        return true;
+    }
+
     const ndt_t *dtype = ndt_dtype(t);
 
     switch (dtype->tag) {
@@ -580,7 +590,7 @@ xnd_clear_bytes(xnd_t *x, const uint32_t flags)
     }
 }
 
-/* Flexible 1D array data must always be allocated by aligned allocators. */
+/* Flexible array data must always be allocated by aligned allocators. */
 static void
 xnd_clear_array(xnd_t *x, const uint32_t flags)
 {
@@ -637,6 +647,18 @@ xnd_clear(xnd_t * const x, const uint32_t flags)
 
     case VarDimElem: {
         fprintf(stderr, "xnd_clear: internal error: unexpected var elem dimension\n");
+        return;
+    }
+
+    case Array: {
+        const int64_t shape = XND_ARRAY_SHAPE(x->ptr);
+
+        for (int64_t i = 0; i < shape; i++) {
+            xnd_t next = _array_next(x, i);
+            xnd_clear(&next, flags);
+        }
+
+        xnd_clear_array(x, flags);
         return;
     }
 
@@ -700,10 +722,6 @@ xnd_clear(xnd_t * const x, const uint32_t flags)
 
     case Bytes:
         xnd_clear_bytes(x, flags);
-        return;
-
-    case Array:
-        xnd_clear_array(x, flags);
         return;
 
     case Categorical:

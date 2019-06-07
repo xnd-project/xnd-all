@@ -1614,51 +1614,89 @@ class TestArray(XndTestCase):
 
     def test_array_empty(self):
         for v, s in DTYPE_EMPTY_TEST_CASES:
-            vv, ss = 0 * [v], "array of %s" % s
+            for _, ss in [
+               (0 * [v], "array of %s" % s),
+               (1 * [v], "array of %s" % s),
+               (2 * [v], "array of %s" % s),
+               (1000 * [v], "array of %s" % s),
 
-            if "?" in ss or "ref" in ss or "&" in ss:
-                continue
-            if "array" in ss or "string" in ss or "bytes" in ss:
-                continue
+               (0 * [0 * [v]], "array of array of %s" % s),
+               (0 * [1 * [v]], "array of array of %s" % s),
+               (1 * [0 * [v]], "array of array of %s" % s),
 
-            t = ndt(ss)
-            x = xnd.empty(ss)
-            self.assertEqual(x.type, t)
-            self.assertEqual(x.value, vv)
-            self.assertEqual(len(x), len(vv))
-            self.assertTrue(x.type.is_c_contiguous())
+               (1 * [1 * [v]], "array of array of %s" % s),
+               (1 * [2 * [v]], "array of array of %s" % s),
+               (2 * [1 * [v]], "array of array of %s" % s),
+               (2 * [2 * [v]], "array of array of %s" % s),
+               (2 * [3 * [v]], "array of array of %s" % s),
+               (3 * [2 * [v]], "array of array of %s" % s),
+               (3 * [40 * [v]], "array of array of %s" % s)]:
+
+                if "?" in ss or "ref" in ss or "&" in ss:
+                    continue
+
+                t = ndt(ss)
+                x = xnd.empty(ss)
+                self.assertEqual(x.type, t)
+                self.assertEqual(x.value, [])
+                self.assertEqual(len(x), len([]))
+                self.assertFalse(x.type.is_c_contiguous())
 
     def test_array_subscript(self):
         test_cases = [
-          [11.12-2.3j, -1222+20e8j],
-          [complex("inf"), -0.00002j],
-          [0.201+1j, -1+1e301j]]
+            ([[11.12-2.3j, -1222+20e8j],
+              [complex("inf"), -0.00002j],
+              [0.201+1j, -1+1e301j]], "array of array of complex128"),
+        ]
 
-        s = "array of complex128"
-
-        for v in test_cases:
+        for v, s in test_cases:
             nd = NDArray(v)
             t = ndt(s)
             x = xnd(v, type=t)
+            self.assertFalse(x.type.is_c_contiguous())
 
-            for i in range(2):
+            for i in range(3):
                 self.assertEqual(x[i].value, nd[i])
 
+            for i in range(3):
+                for k in range(2):
+                    self.assertEqual(x[i][k], nd[i][k])
+                    self.assertEqual(x[i, k], nd[i][k])
+
+            self.assertEqual(x[()].value, nd[:])
+
     def test_array_assign(self):
-        ### Regular data ###
-        x = xnd([1, 2, 3], type="array of float64")
-        v = [4.0, 5.0, 6.0]
+        x = xnd.empty("array of array of float64")
+        v = [[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0, 7.0]]
 
         # Full slice
         x[()] = v
         self.assertEqual(x.value, v)
 
-        x[1] = v[1] = -11.25
+        # Subarray, variable shapes
+        x[0] = v[0] = [1.2, -3e45, float("inf")]
+        self.assertEqual(x.value, v)
+
+        x[1] = v[1] = [-11.25, 3.355e301, -0.000002, -5000.2, -322.25]
+        self.assertEqual(x.value, v)
+
+        # Subarray, fixed shapes
+        x[0] = v[0] = [1.2, -3e45, float("inf"), -322.25]
+        self.assertEqual(x.value, v)
+
+        x[1] = v[1] = [-11.25, 3.355e301, -0.000002, -5000.2]
         self.assertEqual(x.value, v)
 
         # Single values
-        for i in range(3):
-            x[i] = v[i] = 3.22 * i
+        for i in range(2):
+            for j in range(4):
+                x[i][j] = v[i][j] = 3.22 * i + j
+        self.assertEqual(x.value, v)
+
+        # Tuple indexing
+        for i in range(2):
+            for j in range(4):
+                x[i, j] = v[i][j] = -3.002e1 * i + j
         self.assertEqual(x.value, v)
 
     def test_array_richcompare(self):
@@ -1680,14 +1718,40 @@ class TestArray(XndTestCase):
 
         self.assertStrictEqual(x[()], x)
 
+        # Simple multidimensional arrays.
+        x = xnd([[1,2,3], [4,5,6], [7,8,9], [10,11,12]], type="array of array of int64")
+        y = xnd([[1,2,3], [4,5,6], [7,8,9], [10,11,12]], type="array of array of int64")
+        self.assertStrictEqual(x, y)
+
+        for i in range(4):
+            for k in range(3):
+                v = y[i, k]
+                y[i, k] = 100
+                self.assertNotStrictEqual(x, y)
+                y[i, k] = v
+
+        # Flexible multidimensional arrays.
+        x = xnd([[1], [4,5], [7,8,9]], type="array of array of int64")
+        y = xnd([[1], [4,5], [7,8,9]], type="array of array of int64")
+        self.assertStrictEqual(x, y)
+
+        for i in range(3):
+            v = y[i, 0]
+            y[i, 0] = 100
+            self.assertNotStrictEqual(x, y)
+            y[i, 0] = v
+
         # Test corner cases and many dtypes.
         for v, t, u, _, _ in EQUAL_TEST_CASES:
             for vv, tt, uu in [
-               (0 * [v], "array of %s" % t, "array of %s" % u)]:
+               (0 * [v], "array of %s" % t, "array of %s" % u),
+               (0 * [0 * [v]], "array of array of %s" % t, "array of array of %s" % u),
+               (0 * [1 * [v]], "array of array of %s" % t, "array of array of %s" % u),
+               (1 * [0 * [v]], "array of array of %s" % t, "array of array of %s" % u)]:
 
                 if "?" in tt or "ref" in tt or "&" in tt:
                     continue
-                if "array" in tt or "string" in tt or "bytes" in tt:
+                if "?" in uu or "ref" in uu or "&" in uu:
                     continue
 
                 ttt = ndt(tt)
@@ -1709,7 +1773,7 @@ class TestArray(XndTestCase):
 
                 if "?" in tt or "ref" in tt or "&" in tt:
                     continue
-                if "array" in tt or "string" in tt or "bytes" in tt:
+                if "?" in uu or "ref" in uu or "&" in uu:
                     continue
 
                 ttt = ndt(tt)
@@ -1745,6 +1809,86 @@ class TestArray(XndTestCase):
 
         self.assertEqual(x, y)
         self.assertNotStrictEqual(x, y)
+
+    def test_array_geojson_tuple(self):
+        v = { "type": "FeatureCollection",
+              "features": (
+                 { "type": "Feature",
+                   "geometry": { "type": "Point",
+                                 "coordinates": [110.0, 0.7] },
+                   "properties": {"prop0": "value0"} },
+                 { "type": "Feature",
+                   "geometry": { "type": "LineString",
+                                 "coordinates": [[102.1, 0.1], [103.2, 1.1], [104.3, 0.1], [105.5, 1.1]] },
+                   "properties": {"prop0": "value0", "prop1": 0} }
+              ),
+            }
+
+        t = """
+              { type: string,
+                features: (
+                  { type: string,
+                    geometry: { type: string,
+                                coordinates: array of float64 },
+                    properties: { prop0: string } },
+                  { type: string,
+                    geometry: { type: string,
+                                coordinates: array of array of float64 },
+                    properties: { prop0: string, prop1: int64 } }
+                )
+              }
+            """
+
+        x = xnd(v, type=t)
+
+        p = [110.0, 0.7]
+        ls = [[102.1, 0.1], [103.2, 1.1], [104.3, 0.1], [105.5, 1.1]]
+
+        self.assertEqual(x['features', 0, 'geometry', 'coordinates'], p)
+        self.assertEqual(x['features', 1, 'geometry', 'coordinates'],  ls)
+
+        p = [110.0, 0.7, 1.1, 200]
+        ls = [[102.1, 0.1], [103.2, 1.1], [104.3, 0.1], [105.5, 1.1], [107, 1.2]]
+        x['features', 0, 'geometry', 'coordinates'] = p
+        x['features', 1, 'geometry', 'coordinates'] = ls
+
+        self.assertEqual(x['features', 0, 'geometry', 'coordinates', 3], 200)
+        self.assertEqual(x['features', 1, 'geometry', 'coordinates', 4, 1], 1.2)
+
+    def test_array_geojson_union(self):
+        typedef("id",
+          """[
+            String of string
+          | Int of int64
+          ]""")
+
+        typedef("position", "array of float64")
+
+        typedef("geometry",
+          """[
+            Point of position
+          | MultiPoint of array of position
+          | LineString of array of position
+          | MultiLineString of array of array of position
+          | Polygon of array of position
+          | MultiPolygon of array of array of position
+          ]""")
+
+        v = [ ("Point", [110.0, 0.7]),
+              ("LineString", [[102.1, 0.1], [103.2, 1.1], [104.3, 0.1], [105.5, 1.1]])]
+
+        x = xnd(v, type="array of geometry")
+
+        p = [110.0, 0.7]
+        ls = [[102.1, 0.1], [103.2, 1.1], [104.3, 0.1], [105.5, 1.1]]
+
+        self.assertEqual(x[0, 'Point'], p)
+        self.assertEqual(x[1, 'LineString'],  ls)
+
+        p = [110.0, 0.7, 1.1, 200]
+        ls = [[102.1, 0.1], [103.2, 1.1], [104.3, 0.1], [105.5, 1.1], [107, 1.2]]
+        x[0, 'Point'] = p
+        x[1, 'LineString'] = ls
 
 
 class TestRef(XndTestCase):

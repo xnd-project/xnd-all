@@ -1195,7 +1195,8 @@ mblock_init(xnd_t * const x, PyObject *v)
         const Py_ssize_t shape = PyList_GET_SIZE(v);
         const int64_t size = MULi64(shape, t->Array.itemsize, &overflow);
         if (overflow) {
-            ndt_err_format(&ctx, NDT_ValueError, "1D array datasize is too large");
+            ndt_err_format(&ctx, NDT_ValueError,
+                "datasize of flexible array is too large");
             return seterr_int(&ctx);
         }
 
@@ -1204,6 +1205,8 @@ mblock_init(xnd_t * const x, PyObject *v)
             PyErr_NoMemory();
             return -1;
         }
+
+        xnd_clear(x, XND_OWN_EMBEDDED);
         XND_ARRAY_SHAPE(x->ptr) = shape;
         XND_ARRAY_DATA(x->ptr) = data;
 
