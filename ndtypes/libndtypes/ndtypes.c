@@ -107,6 +107,10 @@ ndt_subtree_flags(const ndt_t *type)
         flags |= NDT_REF;
     }
 
+    if (type->flags & NDT_CHAR) {
+        flags |= NDT_CHAR;
+    }
+
     return flags;
 }
 
@@ -706,9 +710,11 @@ check_fixed_invariants(const ndt_t *type, ndt_context_t *ctx)
         return 0;
     }
 
-    if (type->tag == VarDim || type->tag == VarDimElem) {
+    if (type->tag == VarDim || type->tag == VarDimElem ||
+        type->tag == Array) {
         ndt_err_format(ctx, NDT_TypeError,
-            "mixed fixed and var dimensions are not supported");
+            "fixed dimensions cannot contain var dimensions "
+            "or flexible arrays");
         return 0;
     }
 
@@ -730,9 +736,11 @@ check_abstract_var_invariants(const ndt_t *type, ndt_context_t *ctx)
         return 0;
     }
 
-    if (type->tag == FixedDim || type->tag == SymbolicDim) {
+    if (type->tag == FixedDim || type->tag == SymbolicDim ||
+        type->tag == Array) {
         ndt_err_format(ctx, NDT_TypeError,
-            "mixed fixed and var dimensions are not supported");
+            "var dimensions cannot contain fixed dimensions or "
+            "flexible arrays");
         return 0;
     }
 
@@ -761,9 +769,11 @@ check_var_invariants(const ndt_t *type, ndt_context_t *ctx)
         return 0;
     }
 
-    if (type->tag == FixedDim || type->tag == SymbolicDim) {
+    if (type->tag == FixedDim || type->tag == SymbolicDim ||
+        type->tag == Array) {
         ndt_err_format(ctx, NDT_TypeError,
-            "mixed fixed and var dimensions are not supported");
+            "var dimensions cannot contain fixed dimensions or "
+            "flexible arrays");
         return 0;
     }
 
@@ -793,23 +803,16 @@ check_array_invariants(const ndt_t *type, ndt_context_t *ctx)
         return 0;
     }
 
-    if (type->ndim != 0) {
-        ndt_err_format(ctx, NDT_TypeError,
-            "flexible arrays are currently restricted to 1D");
-        return 0;
-    }
-
     if (type->tag == FixedDim || type->tag == SymbolicDim ||
-        type->tag == VarDim || type->tag == VarDimElem ||
-        type->tag == Array) {
+        type->tag == VarDim || type->tag == VarDimElem) {
         ndt_err_format(ctx, NDT_TypeError,
             "flexible array elements cannot be arrays");
         return 0;
     }
 
-    if (!ndt_is_pointer_free(type)) {
+    if (!ndt_is_ref_free(type)) {
         ndt_err_format(ctx, NDT_TypeError,
-            "the element type of flexible arrays must be pointer free");
+            "flexible array elements cannot be contain references");
         return 0;
     }
 
@@ -1455,6 +1458,7 @@ fixed_step(const ndt_t *type, int64_t step, bool *overflow)
     assert(ndt_is_concrete(type));
     assert(type->tag != VarDim);
     assert(type->tag != VarDimElem);
+    assert(type->tag != Array);
 
     if (step != INT64_MAX) {
         return step;
@@ -2319,7 +2323,7 @@ ndt_array(const ndt_t *type, bool opt, ndt_context_t *ctx)
     t->Array.type = type;
 
     t->flags |= ndt_subtree_flags(type);
-    t->ndim = 0;
+    t->ndim = type->ndim + 1;
 
     /* concrete access */
     t->access = type->access;
@@ -2610,7 +2614,7 @@ ndt_char(enum ndt_encoding encoding, bool opt, ndt_context_t *ctx)
     ndt_t *t;
 
     /* abstract type */
-    t = ndt_new(Char, opt, ctx);
+    t = ndt_new(Char, opt|NDT_CHAR, ctx);
     if (t == NULL) {
         return NULL;
     }
